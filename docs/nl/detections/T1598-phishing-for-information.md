@@ -5,7 +5,7 @@
 | **MITRE-tactiek** | Reconnaissance |
 | **Whitepaper-maatregel** | 001 — Security Awareness op OSINT (prioriteit Midden) |
 | **Verwante techniek** | [T1566.002](T1566.002-spearphishing-link.md) — dezelfde mailstroom, maar dan mét payload |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -76,7 +76,7 @@ per platform te verschillen. Alleen `Timestamp` heet in Sentinel óók
 // bankrekeningnummer bevestigen?"). De filterstack heeft er geen verdict op
 // gegeven, dus geen enkel Defender-alert vuurt hierop.
 let lookback = 30d;
-let eigenDomeinen = dynamic(["eigendomein.nl", "eigendomein.com"]);   // <-- aanpassen
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- aanpassen
 EmailEvents
 | where Timestamp > ago(lookback)
 | where EmailDirection == "Inbound"
@@ -84,7 +84,7 @@ EmailEvents
 | where AttachmentCount == 0 and UrlCount == 0   // geen payload = geen alert-trigger
 | where DeliveryAction == "Delivered"    // alleen wat de gebruiker echt heeft gezien
 | where isempty(ThreatTypes)             // de stack vond er niets van; dat is de kern van het probleem
-| where SenderFromDomain !in~ (eigenDomeinen)
+| where SenderFromDomain !in~ (ownDomains)
 // Envelope- en From-domein die uit elkaar lopen is een extra signaal, geen filter:
 | extend EnvelopeMismatch = tolower(SenderMailFromDomain) != tolower(SenderFromDomain)
 | project Timestamp, SenderFromAddress, SenderFromDomain, SenderMailFromDomain,
@@ -98,11 +98,11 @@ Bovenstaande query levert in een normale tenant te veel op. BEC-verkenning
 richt zich op finance, directie en beheer; scope de rule daarop.
 
 ```kql
-let doelwitten = dynamic([
-    "crediteuren@eigendomein.nl", "finance@eigendomein.nl",
-    "directie@eigendomein.nl"                                  // <-- aanpassen
+let targets = dynamic([
+    "accountspayable@yourdomain.example", "finance@yourdomain.example",
+    "management@yourdomain.example"                                  // <-- aanpassen
 ]);
-| where tolower(RecipientEmailAddress) in~ (doelwitten)
+| where tolower(RecipientEmailAddress) in~ (targets)
 ```
 
 ### Aanscherpen op lijkende afzenderdomeinen
@@ -112,18 +112,18 @@ eigen merknaam in zit maar dat niet van jou is (typosquat, `-bv`-variant,
 andere TLD).
 
 ```kql
-let merk = "eigenmerk";                  // <-- aanpassen, zonder TLD
-let eigenDomeinen = dynamic(["eigendomein.nl", "eigendomein.com"]);
+let brand = "yourbrand";                  // <-- aanpassen, zonder TLD
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);
 EmailEvents
 | where Timestamp > ago(30d)
 | where EmailDirection == "Inbound"
-| where SenderFromDomain has merk
-| where SenderFromDomain !in~ (eigenDomeinen)
-| summarize Berichten = count(),
-            Ontvangers = dcount(RecipientEmailAddress),
-            Eerste = min(Timestamp), Laatste = max(Timestamp)
+| where SenderFromDomain has brand
+| where SenderFromDomain !in~ (ownDomains)
+| summarize Messages = count(),
+            Recipients = dcount(RecipientEmailAddress),
+            First = min(Timestamp), Last = max(Timestamp)
           by SenderFromDomain, SenderFromAddress
-| order by Berichten desc
+| order by Messages desc
 ```
 
 ## Waarom dit BEC is

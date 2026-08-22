@@ -19,7 +19,7 @@ Van de technieken in het advies levert een aanzienlijk deel geen alert op, of
 een alert op het laagste niveau. Twee voorbeelden uit Microsofts eigen
 documentatie: het aanmaken van een doorstuurregel is `Informational`, en het
 starten of exporteren van een eDiscovery-zoekopdracht over alle mailboxen is
-dat ook. Zie [SEVERITY-OVERZICHT.md](overzicht.md).
+dat ook. Zie [overzicht](overzicht.md).
 
 ## Welke detectie moet je kiezen?
 
@@ -70,14 +70,14 @@ alleen toereikend. Bij negen technieken is er een bruikbaar alert dat je moet
 aanzetten, maar laat het een gat dat er in de praktijk toe doet: het dekt niet
 alle uitvoeringswijzen, of het vereist een E5- of add-on-licentie die het mkb —
 de doelgroep van dit advies — niet heeft. Bij de overige achttien is er niets om
-op te leunen. Zie [SEVERITY-OVERZICHT.md](overzicht.md).
+op te leunen. Zie [overzicht](overzicht.md).
 
 ## Structuur
 
 ```
 detections/<TECHNIEK-ID>-<naam>.md    één bestand per ATT&CK-techniek
-SEVERITY-OVERZICHT.md                 alle technieken in één tabel
-TESTING.md                            teststatus per query
+overzicht.md                          alle technieken in één tabel
+teststatus.md                         teststatus per query
 ```
 
 Elk detectiebestand heeft dezelfde opbouw: metadata, "Is er een Defender-alert
@@ -87,7 +87,7 @@ voor?", benodigde databron, KQL per platform, waarom het BEC is, referenties.
 
 **De queries in deze repo zijn niet uitgevoerd tegen een productie-tenant.** Ze
 zijn gebouwd op tabel- en kolomnamen uit de Microsoft-documentatie en op
-gepubliceerde hunting-queries. Per query staat in [TESTING.md](teststatus.md) of
+gepubliceerde hunting-queries. Per query staat in [teststatus](teststatus.md) of
 hij is getest en waartegen. Neem niets over in productie zonder het zelf te
 draaien.
 
@@ -103,7 +103,7 @@ zo bij — er wordt niet gegokt.
 
 Verbeteringen zijn welkom, en het meest bruikbaar is een teststatus van iemand
 die een query in een echte tenant heeft gedraaid. Zie
-[CONTRIBUTING.md](bijdragen.md).
+[bijdragen](bijdragen.md).
 
 ## Licentie
 

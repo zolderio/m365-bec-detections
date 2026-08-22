@@ -5,7 +5,7 @@
 | **MITRE-tactiek** | Impact |
 | **Whitepaper-maatregel** | 019 — Administratieve verificatie van betalingen (prioriteit Hoog) |
 | **Verwante techniek** | [T1656](T1656-impersonation.md) — het middel; dit bestand gaat over de uitkomst |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -143,29 +143,29 @@ naar buiten begint te mailen. Behandel dit als hunting, niet als alert.
 // Sentinel — accounts die binnen 24 uur zowel een inboxregel aanmaakten of
 // wijzigden, als mail verstuurden of mailboxrechten weggaven.
 let lookback = 7d;
-let regels = OfficeActivity
+let rules = OfficeActivity
     | where TimeGenerated > ago(lookback)
     | where Operation in~ ("New-InboxRule", "Set-InboxRule", "UpdateInboxRules")
-    | project RegelTijd = TimeGenerated, UserId, RegelIP = ClientIP, Parameters;
-let verzenden = OfficeActivity
+    | project RuleTime = TimeGenerated, UserId, RuleIP = ClientIP, Parameters;
+let sends = OfficeActivity
     | where TimeGenerated > ago(lookback)
     | where Operation in~ ("Send", "SendAs", "SendOnBehalf",
                            "Add-MailboxPermission", "Add-RecipientPermission")
-    | project ActieTijd = TimeGenerated, UserId, Operation, ActieIP = ClientIP;
-regels
-| join kind=inner verzenden on UserId
-| where ActieTijd between (RegelTijd - 24h .. RegelTijd + 24h)
-| summarize Acties = make_set(Operation, 10), Aantal = count(),
-            IPs = make_set(ActieIP, 5), Regel = any(Parameters)
-        by UserId, bin(RegelTijd, 1d)
-| order by Aantal desc
+    | project ActionTime = TimeGenerated, UserId, Operation, ActionIP = ClientIP;
+rules
+| join kind=inner sends on UserId
+| where ActionTime between (RuleTime - 24h .. RuleTime + 24h)
+| summarize Actions = make_set(Operation, 10), Count = count(),
+            IPs = make_set(ActionIP, 5), Rule = any(Parameters)
+        by UserId, bin(RuleTime, 1d)
+| order by Count desc
 ```
 
 ```kql
 // Defender XDR — uitgaande mail met betaalgerelateerde onderwerpen vanuit een
 // account waarvoor in dezelfde periode een alert openstaat.
 let lookback = 7d;
-let verdachte_accounts = AlertEvidence
+let suspiciousAccounts = AlertEvidence
     | where Timestamp > ago(lookback)
     | where EntityType =~ "User"
     | where isnotempty(AccountUpn)
@@ -173,7 +173,7 @@ let verdachte_accounts = AlertEvidence
 EmailEvents
 | where Timestamp > ago(lookback)
 | where EmailDirection in ("Outbound", "Intra-org")
-| where SenderFromAddress in~ (verdachte_accounts)
+| where SenderFromAddress in~ (suspiciousAccounts)
 | where Subject has_any ("factuur", "invoice", "betaling", "payment", "iban",
                          "rekeningnummer", "bank details", "remittance",
                          "spoedbetaling", "urgent payment")
@@ -231,5 +231,3 @@ transfer payments"* — de doelgroep van maatregel 019, niet van een SIEM-regel.
 - Microsoft, OfficeActivity-schema: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/officeactivity
 - FBI IC3 Annual Report 2025: https://www.ic3.gov/AnnualReport/Reports/2025_IC3Report.pdf
 - MITRE ATT&CK T1657: https://attack.mitre.org/techniques/T1657/
-</content>
-</invoke>

@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | **MITRE-tactiek** | Collection |
-| **Whitepaper-maatregel** | 016 — Blokkering van automatische e-mailforwarding (prioriteit Hoog)<br>017 — Teams & SharePoint-collaboration beperken (prioriteit Midden) |
+| **Whitepaper-maatregelen** | 016 — Blokkering van automatische e-mailforwarding (prioriteit Hoog)<br>017 — Teams & SharePoint-collaboration beperken (prioriteit Midden) |
 | **Verwante technieken** | [T1114.002](T1114.002-remote-email-collection.md) — mailboxdelegatie; [T1530](T1530-data-from-cloud-storage.md) — wat de gast dan leest; [T1567](T1567-exfiltration-over-web-services.md) — vergeten gasttoegang opruimen |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -66,9 +66,9 @@ AuditLogs
                            "Invite internal user to B2B collaboration",
                            "Redeem external user invite",
                            "Bulk invite users - finished (bulk)")
-| extend Uitnodiger = tostring(InitiatedBy.user.userPrincipalName)
-| extend Gast       = tostring(TargetResources[0].userPrincipalName)
-| project TimeGenerated, OperationName, Category, Result, Uitnodiger, Gast, TargetResources
+| extend Inviter = tostring(InitiatedBy.user.userPrincipalName)
+| extend Guest   = tostring(TargetResources[0].userPrincipalName)
+| project TimeGenerated, OperationName, Category, Result, Inviter, Guest, TargetResources
 | order by TimeGenerated desc
 ```
 
@@ -76,9 +76,9 @@ AuditLogs
 // 2. Gastaccount dat na langere stilte weer inlogt. Dat is het patroon van
 //    'vergeten toegang' uit maatregel 018 en het patroon van een overgenomen
 //    gastaccount. UserType is gedocumenteerd met de waarden member en guest.
-let lookback  = 1d;
-let baseline  = 60d;
-let actief_recent = SigninLogs
+let lookback     = 1d;
+let baseline     = 60d;
+let activeRecent = SigninLogs
     | where TimeGenerated > ago(baseline) and TimeGenerated < ago(lookback)
     | where UserType =~ "guest"
     | where ResultType == 0
@@ -87,7 +87,7 @@ SigninLogs
 | where TimeGenerated > ago(lookback)
 | where UserType =~ "guest"
 | where ResultType == 0
-| where UserPrincipalName !in (actief_recent)
+| where UserPrincipalName !in (activeRecent)
 | project TimeGenerated, UserPrincipalName, UserDisplayName, AppDisplayName,
           ResourceDisplayName, IPAddress, Location, ClientAppUsed,
           CrossTenantAccessType, HomeTenantId, ConditionalAccessStatus,
@@ -131,23 +131,23 @@ let lookback = 7d;
 CloudAppEvents
 | where Timestamp > ago(lookback)
 | where IsExternalUser == true
-| summarize Acties      = count(),
-            Soorten     = make_set(ActionType, 20),
-            Apps        = make_set(Application, 10),
-            IPs         = make_set(IPAddress, 10),
-            EersteKeer  = min(Timestamp),
-            LaatsteKeer = max(Timestamp)
+| summarize Actions   = count(),
+            Kinds     = make_set(ActionType, 20),
+            Apps      = make_set(Application, 10),
+            IPs       = make_set(IPAddress, 10),
+            FirstSeen = min(Timestamp),
+            LastSeen  = max(Timestamp)
         by AccountDisplayName, AccountObjectId
-| order by Acties desc
+| order by Actions desc
 ```
 
 ```kql
 // Gastaccounts die een resource benaderen die ze niet eerder benaderden.
 // EntraIdSignInEvents vereist Entra ID P2; tot 19 okt 2026 heet deze tabel
 // ook nog AADSignInEventsBeta.
-let lookback  = 1d;
-let baseline  = 30d;
-let bekend = EntraIdSignInEvents
+let lookback = 1d;
+let baseline = 30d;
+let known    = EntraIdSignInEvents
     | where Timestamp between (ago(baseline) .. ago(lookback))
     | where IsGuestUser == true
     | distinct AccountUpn, ResourceDisplayName;
@@ -155,7 +155,7 @@ EntraIdSignInEvents
 | where Timestamp > ago(lookback)
 | where IsGuestUser == true
 | where ErrorCode == 0
-| join kind=leftanti bekend on AccountUpn, ResourceDisplayName
+| join kind=leftanti known on AccountUpn, ResourceDisplayName
 | project Timestamp, AccountUpn, AccountObjectId, ResourceDisplayName,
           Application, IPAddress, Country, ClientAppUsed, UserAgent,
           AuthenticationRequirement, ConditionalAccessStatus, SessionId
@@ -169,11 +169,11 @@ is het interessante geval een gast van buiten die lijst. Vervang in query 1 en 2
 de laatste filterregel:
 
 ```kql
-| extend GastDomein = tolower(tostring(split(replace_string(Gast, "_", "@"), "@")[-1]))
-| where GastDomein !in~ ("vertrouwdepartner.nl", "vertrouwdeklant.com")   // <-- aanpassen
+| extend GuestDomain = tolower(tostring(split(replace_string(Guest, "_", "@"), "@")[-1]))
+| where GuestDomain !in~ ("trustedpartner.example", "trustedcustomer.example")   // <-- aanpassen
 ```
 
-Let op dat gast-UPN's in Entra de vorm `naam_extern.com#EXT#@eigendomein.onmicrosoft.com`
+Let op dat gast-UPN's in Entra de vorm `naam_extern.com#EXT#@yourdomain.onmicrosoft.com`
 hebben; het echte domein zit vóór `#EXT#`, niet erachter. Test deze extractie
 tegen je eigen data voordat je hem als filter gebruikt.
 
@@ -203,5 +203,3 @@ de sessies intrekt, laat deze twee ingangen open staan.
 - Microsoft, sharing auditing in het auditlog (TargetUserOrGroupType): https://learn.microsoft.com/en-us/purview/audit-log-sharing
 - Microsoft, mailbox auditing beheren (sign-in types Owner/Delegate/Admin): https://learn.microsoft.com/en-us/purview/audit-mailboxes
 - MITRE ATT&CK T1078: https://attack.mitre.org/techniques/T1078/
-</content>
-</invoke>

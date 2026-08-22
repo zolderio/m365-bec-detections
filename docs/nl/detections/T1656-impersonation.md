@@ -5,7 +5,7 @@
 | **MITRE-tactiek** | Impact |
 | **Whitepaper-maatregel** | 019 — Administratieve verificatie van betalingen (prioriteit Hoog) |
 | **Verwante techniek** | [T1657](T1657-financial-theft.md) — hetzelfde moment, andere helft: de betaling zelf |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -116,7 +116,7 @@ EmailEvents
 // lijkt, met een betaalgerelateerd onderwerp. Bewust geen dreigingsverdict als
 // voorwaarde: de BEC-mail die er het meest toe doet heeft er geen.
 let lookback = 7d;
-let eigen_domeinen = dynamic(["eigendomein.nl", "eigendomein.com"]);   // <-- aanpassen
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- aanpassen
 EmailEvents
 | where Timestamp > ago(lookback)
 | where EmailDirection == "Inbound"
@@ -124,9 +124,9 @@ EmailEvents
 | where Subject has_any ("factuur", "invoice", "betaling", "payment", "iban",
                          "rekeningnummer", "bank details", "spoed", "urgent",
                          "wijziging", "remittance")
-| extend Afzenderdomein = tolower(SenderFromDomain)
-| where not(Afzenderdomein in~ (eigen_domeinen))
-| project Timestamp, Subject, SenderFromAddress, SenderDisplayName, Afzenderdomein,
+| extend SenderDomain = tolower(SenderFromDomain)
+| where not(SenderDomain in~ (ownDomains))
+| project Timestamp, Subject, SenderFromAddress, SenderDisplayName, SenderDomain,
           SenderMailFromDomain, RecipientEmailAddress, AuthenticationDetails,
           DeliveryLocation, ThreatTypes, DetectionMethods, ReportId
 | order by Timestamp desc
@@ -142,7 +142,7 @@ EmailEvents
 // De afzenderkant: display-naamimpersonatie waarbij de weergegeven naam
 // overeenkomt met een eigen medewerker maar het adres extern is.
 let lookback = 7d;
-let interne_namen = EmailEvents
+let internalNames = EmailEvents
     | where Timestamp > ago(30d)
     | where EmailDirection == "Intra-org"
     | where isnotempty(SenderDisplayName)
@@ -150,7 +150,7 @@ let interne_namen = EmailEvents
 EmailEvents
 | where Timestamp > ago(lookback)
 | where EmailDirection == "Inbound"
-| where SenderDisplayName in (interne_namen)
+| where SenderDisplayName in (internalNames)
 | project Timestamp, Subject, SenderDisplayName, SenderFromAddress, SenderFromDomain,
           RecipientEmailAddress, DeliveryLocation, AuthenticationDetails,
           EmailActionPolicy, IsFirstContact
@@ -172,10 +172,10 @@ AlertInfo
 | join kind=leftouter (
     AlertEvidence
     | where Timestamp > ago(lookback)
-    | summarize Entiteiten = make_set(strcat(EntityType, ":", coalesce(AccountUpn, RemoteUrl, FileName, "")), 20) by AlertId
+    | summarize Entities = make_set(strcat(EntityType, ":", coalesce(AccountUpn, RemoteUrl, FileName, "")), 20) by AlertId
 ) on AlertId
 | project Timestamp, AlertId, Title, Category, Severity, ServiceSource,
-          DetectionSource, AttackTechniques, Entiteiten
+          DetectionSource, AttackTechniques, Entities
 | order by Timestamp desc
 ```
 
@@ -231,5 +231,3 @@ gerapporteerde schade (IC3 Annual Report 2025).
 - Microsoft, SecurityAlert-schema (Sentinel): https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/securityalert
 - FBI IC3 Annual Report 2025: https://www.ic3.gov/AnnualReport/Reports/2025_IC3Report.pdf
 - MITRE ATT&CK T1656: https://attack.mitre.org/techniques/T1656/
-</content>
-</invoke>

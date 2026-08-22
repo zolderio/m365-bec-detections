@@ -3,9 +3,9 @@
 | | |
 |---|---|
 | **MITRE-tactiek** | Collection |
-| **Whitepaper-maatregel** | 016 — Blokkering van automatische e-mailforwarding (prioriteit Hoog)<br>017 — Teams & SharePoint-collaboration beperken (prioriteit Midden) |
+| **Whitepaper-maatregelen** | 016 — Blokkering van automatische e-mailforwarding (prioriteit Hoog)<br>017 — Teams & SharePoint-collaboration beperken (prioriteit Midden) |
 | **Verwante technieken** | [T1114.002](T1114.002-remote-email-collection.md) — hetzelfde gedrag in de mailbox; [T1567](T1567-exfiltration-over-web-services.md) — het naar buiten brengen |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -109,8 +109,8 @@ Financieel aanscherpen — dit is de filter die van "een bestand geopend" een
 BEC-signaal maakt:
 
 ```kql
-| extend Bestand = tolower(strcat(SourceRelativeUrl, "/", SourceFileName))
-| where Bestand has_any ("factuur", "invoice", "iban", "betaling", "payment",
+| extend File = tolower(strcat(SourceRelativeUrl, "/", SourceFileName))
+| where File has_any ("factuur", "invoice", "iban", "betaling", "payment",
                          "creditor", "crediteur", "bankgegevens", "remittance",
                          "contract", "leverancier", "supplier")
 ```
@@ -121,20 +121,20 @@ En de sessiepivot, zodat je zoeken en openen aan elkaar knoopt:
 // Gebruikers die binnen 30 minuten zowel zochten als bestanden openden,
 // vanaf hetzelfde IP.
 let lookback = 7d;
-let zoek = OfficeActivity
+let searches = OfficeActivity
     | where TimeGenerated > ago(lookback)
     | where Operation in~ ("SearchQueryInitiatedSharePoint", "SearchQueryPerformed")
-    | project ZoekTijd = TimeGenerated, UserId, ClientIP;
-let open = OfficeActivity
+    | project SearchTime = TimeGenerated, UserId, ClientIP;
+let opens = OfficeActivity
     | where TimeGenerated > ago(lookback)
     | where Operation in~ ("FileAccessed", "FileDownloaded")
-    | project OpenTijd = TimeGenerated, UserId, ClientIP, SourceFileName;
-zoek
-| join kind=inner open on UserId, ClientIP
-| where OpenTijd between (ZoekTijd .. ZoekTijd + 30m)
-| summarize Bestanden = make_set(SourceFileName, 25), Aantal = count()
-        by UserId, ClientIP, bin(ZoekTijd, 1h)
-| order by Aantal desc
+    | project OpenTime = TimeGenerated, UserId, ClientIP, SourceFileName;
+searches
+| join kind=inner opens on UserId, ClientIP
+| where OpenTime between (SearchTime .. SearchTime + 30m)
+| summarize Files = make_set(SourceFileName, 25), Count = count()
+        by UserId, ClientIP, bin(SearchTime, 1h)
+| order by Count desc
 ```
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
@@ -187,5 +187,3 @@ FileDeleted operations."*
 - Microsoft, audit log activities: https://learn.microsoft.com/en-us/purview/audit-log-activities
 - CISA, Microsoft Expanded Cloud Logs Implementation Playbook (bijgewerkt mei 2026): https://www.cisa.gov/sites/default/files/2026-07/MS%20Expanded%20Logging%20Playbook-Updated-May2026_Final%20approved_508%20Remediation%20Complete_published%20(1).pdf
 - MITRE ATT&CK T1530: https://attack.mitre.org/techniques/T1530/
-</content>
-</invoke>

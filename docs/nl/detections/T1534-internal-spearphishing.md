@@ -6,7 +6,7 @@
 | **Whitepaper-fase** | 10. Lateral Movement |
 | **Whitepaper-maatregel** | 015 — Interne en uitgaande phishingdetectie (prioriteit Midden, impact Hoog, inspanning Midden) |
 | **Verwante technieken** | [T1537](T1537-transfer-data-to-cloud-account.md) en [T1566.003](T1566.003-spearphishing-via-service.md) — zelfde maatregel |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -110,16 +110,16 @@ EmailEvents
 | where EmailDirection == "Intra-org"
 | where isnotempty(ThreatTypes)
 | where ThreatTypes has_any ("Phish", "Malware")
-| summarize Ontvangers = dcount(RecipientEmailAddress),
-            OntvangerLijst = make_set(RecipientEmailAddress, 25),
-            Onderwerpen = make_set(Subject, 10),
+| summarize Recipients = dcount(RecipientEmailAddress),
+            RecipientList = make_set(RecipientEmailAddress, 25),
+            Subjects = make_set(Subject, 10),
             Verdicts = make_set(ThreatTypes, 5),
-            Detectie = make_set(DetectionMethods, 5),
-            Afgeleverd = countif(DeliveryAction == "Delivered"),
-            Geblokkeerd = countif(DeliveryAction in ("Blocked", "Junked", "Replaced")),
-            Eerste = min(Timestamp), Laatste = max(Timestamp)
+            Detection = make_set(DetectionMethods, 5),
+            Delivered = countif(DeliveryAction == "Delivered"),
+            Blocked = countif(DeliveryAction in ("Blocked", "Junked", "Replaced")),
+            First = min(Timestamp), Last = max(Timestamp)
     by SenderFromAddress, SenderObjectId
-| order by Afgeleverd desc, Ontvangers desc
+| order by Delivered desc, Recipients desc
 ```
 
 Een `Delivered`-verdict met `ThreatTypes has "Phish"` en `EmailDirection ==
@@ -136,24 +136,24 @@ ongebruikelijk veel interne ontvangers stuurt.
 
 ```kql
 // Interne afzender met een ongebruikelijke fan-out op een enkel onderwerp.
-// Tune Ontvangers en het venster op de eigen organisatie; in een tenant met
-// veel distributielijsten ligt de drempel hoger.
+// Tune Ontvangers en het window op de eigen organisatie; in een tenant met
+// veel distributielijsten ligt de threshold hoger.
 let lookback = 7d;
-let venster = 1h;
-let minOntvangers = 8;
+let window = 1h;
+let minRecipients = 8;
 EmailEvents
 | where Timestamp > ago(lookback)
 | where EmailDirection == "Intra-org"
 | where DeliveryAction == "Delivered"
 | where isempty(DistributionList)          // echte fan-out, geen distributielijst
-| summarize Ontvangers = dcount(RecipientEmailAddress),
-            OntvangerLijst = make_set(RecipientEmailAddress, 30),
-            Berichten = dcount(NetworkMessageId),
-            EersteContact = countif(IsFirstContact == 1),
-            Urls = sum(UrlCount), Bijlagen = sum(AttachmentCount)
-    by SenderFromAddress, Subject, bin(Timestamp, venster)
-| where Ontvangers >= minOntvangers
-| order by Ontvangers desc
+| summarize Recipients = dcount(RecipientEmailAddress),
+            RecipientList = make_set(RecipientEmailAddress, 30),
+            Messages = dcount(NetworkMessageId),
+            FirstContact = countif(IsFirstContact == 1),
+            Urls = sum(UrlCount), Attachments = sum(AttachmentCount)
+    by SenderFromAddress, Subject, bin(Timestamp, window)
+| where Recipients >= minRecipients
+| order by Recipients desc
 ```
 
 Combineer dit met de andere technieken uit dit cluster: een fan-out die
@@ -168,14 +168,14 @@ samenvalt met een verse inboxregel uit
 // Vereist EnableForInternalSenders $true in het Safe Links-beleid; anders is
 // deze tabel leeg voor interne mail.
 let lookback = 7d;
-let internEmail = EmailEvents
+let internalEmail = EmailEvents
     | where Timestamp > ago(lookback)
     | where EmailDirection == "Intra-org"
     | project NetworkMessageId, SenderFromAddress, Subject, RecipientEmailAddress;
 UrlClickEvents
 | where Timestamp > ago(lookback)
 | where Workload == "Email"
-| join kind=inner internEmail on NetworkMessageId
+| join kind=inner internalEmail on NetworkMessageId
 | project Timestamp, AccountUpn, SenderFromAddress, Subject, Url, UrlChain,
           ActionType, IsClickedThrough, ThreatTypes, DetectionMethods, IPAddress
 | order by Timestamp desc

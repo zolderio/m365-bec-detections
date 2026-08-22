@@ -5,7 +5,7 @@
 | **MITRE-tactiek** | Resource Development (indeling van het advies) |
 | **Whitepaper-maatregelen** | 002 — SPF, DKIM en DMARC correct configureren (prioriteit Midden)<br>003 — Direct Send-functie uitschakelen (prioriteit Hoog) |
 | **Let op de ID** | `https://attack.mitre.org/techniques/T1672/` redirect inmiddels naar **T1684.002 — Social Engineering: Email Spoofing** (tactiek *Stealth*). Het advies gebruikt T1672; dat is de ID zoals die in april 2026 gold. Beide verwijzen naar dezelfde techniek. |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -75,11 +75,11 @@ alleen message trace in het Defender-portaal over.
 // er is dus geen connector aan te wijzen. Legitieme interne mail is
 // Intra-org, niet Inbound.
 let lookback = 30d;
-let eigenDomeinen = dynamic(["eigendomein.nl", "eigendomein.com"]);   // <-- aanpassen
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- aanpassen
 EmailEvents
 | where Timestamp > ago(lookback)
 | where EmailDirection == "Inbound"
-| where tolower(SenderFromDomain) in~ (eigenDomeinen)
+| where tolower(SenderFromDomain) in~ (ownDomains)
 | where isempty(Connectors)              // geen connector = niet via een geauthenticeerd pad
 | project Timestamp, SenderFromAddress, SenderMailFromAddress, SenderIPv4, SenderIPv6,
           RecipientEmailAddress, Subject, DeliveryAction, DeliveryLocation,
@@ -92,8 +92,8 @@ sluit die bronnen dan uit op IP en monitor het volume — het advies vraagt daar
 expliciet om:
 
 ```kql
-let toegestaneIPs = dynamic(["203.0.113.10", "203.0.113.11"]);   // <-- aanpassen
-| where SenderIPv4 !in (toegestaneIPs)
+let allowedIPs = dynamic(["203.0.113.10", "203.0.113.11"]);   // <-- aanpassen
+| where SenderIPv4 !in (allowedIPs)
 ```
 
 En om afwijkend volume vanaf die vertrouwde adressen te zien:
@@ -103,8 +103,8 @@ EmailEvents
 | where Timestamp > ago(30d)
 | where EmailDirection == "Inbound" and isempty(Connectors)
 | where SenderIPv4 in (dynamic(["203.0.113.10", "203.0.113.11"]))   // <-- aanpassen
-| summarize Berichten = count() by bin(Timestamp, 1h), SenderIPv4
-| order by Berichten desc
+| summarize Messages = count() by bin(Timestamp, 1h), SenderIPv4
+| order by Messages desc
 ```
 
 ## KQL — falende e-mailauthenticatie op je eigen domein
@@ -115,11 +115,11 @@ EmailEvents
 // de verdicten van alle protocollen; er is geen aparte kolom per protocol, dus
 // het filter is een has_any op de tekst.
 let lookback = 14d;
-let eigenDomeinen = dynamic(["eigendomein.nl", "eigendomein.com"]);   // <-- aanpassen
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- aanpassen
 EmailEvents
 | where Timestamp > ago(lookback)
 | where EmailDirection == "Inbound"
-| where tolower(SenderFromDomain) in~ (eigenDomeinen)
+| where tolower(SenderFromDomain) in~ (ownDomains)
 | where AuthenticationDetails has_any ("fail", "softfail", "none")
 | project Timestamp, SenderFromAddress, SenderMailFromDomain, SenderIPv4,
           RecipientEmailAddress, Subject, AuthenticationDetails,
@@ -136,8 +136,8 @@ Twee hulpkolommen die de triage sneller maken, allebei gedocumenteerd in het
   is geland. Dat zijn de gevallen die er echt toe doen.
 
 ```kql
-| extend StackZagHet = EmailActionPolicy == "Anti-phishing spoof"
-| where DeliveryLocation == "Inbox/Folder"
+| extend StackCaughtIt = EmailActionPolicy == "Anti-phishing spoof"
+| where DeliveryLocation in~ ("Inbox/folder", "Junk")
 ```
 
 ## Waarom dit BEC is

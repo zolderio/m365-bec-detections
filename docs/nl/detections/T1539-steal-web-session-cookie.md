@@ -5,7 +5,7 @@
 | **MITRE-tactiek** | Credential Access |
 | **Whitepaper-maatregelen** | 004 — Phishing-resistente multifactorauthenticatie (prioriteit Hoog)<br>005 — Microsoft Defender for Office 365 (prioriteit Midden) |
 | **Verwante technieken** | [T1557](T1557-adversary-in-the-middle.md) — hoe het cookie meestal wordt buitgemaakt<br>[T1078.004](T1078.004-cloud-accounts.md) — wat er met de sessie gebeurt |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -131,17 +131,17 @@ union SigninLogs, AADNonInteractiveUserSignInLogs
 | where TimeGenerated > ago(lookback)
 | where ResultType == "0"
 | where isnotempty(UniqueTokenIdentifier)
-| summarize Landen        = make_set(Location, 10),
-            AantalLanden  = dcount(Location),
-            IPs           = make_set(IPAddress, 10),
-            AantalIPs     = dcount(IPAddress),
-            Apps          = make_set(AppDisplayName, 10),
-            Eerste        = min(TimeGenerated),
-            Laatste       = max(TimeGenerated)
+| summarize Countries    = make_set(Location, 10),
+            CountryCount = dcount(Location),
+            IPs          = make_set(IPAddress, 10),
+            IPCount      = dcount(IPAddress),
+            Apps         = make_set(AppDisplayName, 10),
+            First        = min(TimeGenerated),
+            Last         = max(TimeGenerated)
           by UniqueTokenIdentifier, UserPrincipalName
-| where AantalLanden > 1
-| extend Spanne = Laatste - Eerste
-| order by AantalLanden desc, AantalIPs desc
+| where CountryCount > 1
+| extend Span = Last - First
+| order by CountryCount desc, IPCount desc
 ```
 
 En de sessievariant, die dichter bij de XDR-query blijft:
@@ -152,10 +152,10 @@ SigninLogs
 | where TimeGenerated > ago(lookback)
 | where ResultType == "0"
 | where isnotempty(SessionId)
-| summarize Landen = make_set(Location, 10), AantalLanden = dcount(Location),
+| summarize Countries = make_set(Location, 10), CountryCount = dcount(Location),
             IPs = make_set(IPAddress, 10), Apps = make_set(AppDisplayName, 10)
           by SessionId, UserPrincipalName
-| where AantalLanden > 1
+| where CountryCount > 1
 ```
 
 Beide queries geven ruis bij gebruikers achter een VPN met wisselende exit-nodes

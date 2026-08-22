@@ -4,8 +4,8 @@
 |---|---|
 | **MITRE-tactiek** | Credential Access |
 | **Whitepaper-maatregelen** | 004 — Phishing-resistente multifactorauthenticatie (prioriteit Hoog)<br>005 — Microsoft Defender for Office 365 (prioriteit Midden) |
-| **Verwante technieken** | [T1110.003](T1110.003-password-spraying.md) — hoe het wachtwoord dat hieraan voorafgaat is gevonden |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Verwante techniek** | [T1110.003](T1110.003-password-spraying.md) — hoe het wachtwoord dat hieraan voorafgaat is gevonden |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -78,24 +78,24 @@ in een kort venster, vanaf een IP dat de gebruiker niet kent.
 
 ```kql
 // MFA-fatigue: een reeks mislukte MFA-uitdagingen op hetzelfde account binnen
-// een kort venster. Het wachtwoord klopt al (anders was de fout 50126 geweest
+// een kort window. Het wachtwoord klopt al (anders was de fout 50126 geweest
 // en was de MFA-stap nooit bereikt) - dat maakt dit een post-credential-signaal
 // en dus urgenter dan een mislukte aanmelding.
-let venster = 15m;
-let drempel = 5;                       // <-- afstemmen; begin hoog en zak af
+let window = 15m;
+let threshold = 5;                       // <-- afstemmen; begin hoog en zak af
 SigninLogs
 | where TimeGenerated > ago(1d)
 | where ResultType == "500121"
-| summarize Pogingen   = count(),
-            IPs        = make_set(IPAddress, 10),
-            AantalIPs  = dcount(IPAddress),
-            Landen     = make_set(Location, 10),
-            Apps       = make_set(AppDisplayName, 10),
-            Eerste     = min(TimeGenerated),
-            Laatste    = max(TimeGenerated)
-          by UserPrincipalName, bin(TimeGenerated, venster)
-| where Pogingen >= drempel
-| order by Pogingen desc
+| summarize Attempts  = count(),
+            IPs       = make_set(IPAddress, 10),
+            IPCount   = dcount(IPAddress),
+            Countries = make_set(Location, 10),
+            Apps      = make_set(AppDisplayName, 10),
+            First     = min(TimeGenerated),
+            Last      = max(TimeGenerated)
+          by UserPrincipalName, bin(TimeGenerated, window)
+| where Attempts >= threshold
+| order by Attempts desc
 ```
 
 ### De variant die er echt toe doet: fatigue gevolgd door succes
@@ -104,24 +104,24 @@ SigninLogs
 // Een reeks geweigerde MFA-prompts en daarna een geslaagde aanmelding vanaf
 // hetzelfde IP: de gebruiker is uiteindelijk gezwicht. Dit is de query die je
 // als analytic rule wilt hebben, niet die hierboven.
-let venster  = 30m;
-let drempel  = 5;
-let fatigue =
+let window    = 30m;
+let threshold = 5;
+let fatigue   =
     SigninLogs
     | where TimeGenerated > ago(1d)
     | where ResultType == "500121"
-    | summarize Pogingen = count(), Start = min(TimeGenerated), Eind = max(TimeGenerated)
+    | summarize Attempts = count(), Start = min(TimeGenerated), End = max(TimeGenerated)
               by UserPrincipalName, IPAddress
-    | where Pogingen >= drempel;
+    | where Attempts >= threshold;
 SigninLogs
 | where TimeGenerated > ago(1d)
 | where ResultType == "0"
 | join kind=inner fatigue on UserPrincipalName, IPAddress
-| where TimeGenerated between (Start .. Eind + venster)
-| project GeslaagdOp = TimeGenerated, UserPrincipalName, IPAddress, Location,
-          Pogingen, AppDisplayName, ClientAppUsed, UserAgent,
+| where TimeGenerated between (Start .. End + window)
+| project SucceededAt = TimeGenerated, UserPrincipalName, IPAddress, Location,
+          Attempts, AppDisplayName, ClientAppUsed, UserAgent,
           AuthenticationRequirement, ConditionalAccessStatus, SessionId
-| order by GeslaagdOp desc
+| order by SucceededAt desc
 ```
 
 ### De gebruiker die het zelf meldt
@@ -155,20 +155,20 @@ AADUserRiskEvents
 
 ```kql
 // Zelfde logica. ErrorCode is hier een int in plaats van een string.
-let venster = 15m;
-let drempel = 5;
+let window = 15m;
+let threshold = 5;
 EntraIdSignInEvents
 | where Timestamp > ago(1d)
 | where ErrorCode == 500121
-| summarize Pogingen  = count(),
+| summarize Attempts  = count(),
             IPs       = make_set(IPAddress, 10),
-            Landen    = make_set(Country, 10),
+            Countries = make_set(Country, 10),
             Apps      = make_set(Application, 10),
-            Eerste    = min(Timestamp),
-            Laatste   = max(Timestamp)
-          by AccountUpn, bin(Timestamp, venster)
-| where Pogingen >= drempel
-| order by Pogingen desc
+            First     = min(Timestamp),
+            Last      = max(Timestamp)
+          by AccountUpn, bin(Timestamp, window)
+| where Attempts >= threshold
+| order by Attempts desc
 ```
 
 ## Waarom dit BEC is

@@ -7,7 +7,7 @@
 | **MITRE-tactiek** | Execution (TA0002) |
 | **Whitepaper-maatregel** | 008 — Blokkeren van riskante extensies (prioriteit Hoog) |
 | **Verwante techniek** | [T1059](T1059-execution-via-malicious-scripts.md) — dezelfde maatregel, de endpointkant in plaats van de mailkant |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -94,11 +94,11 @@ tabel Safe Links vereist en dus MDO.
 // ThreatTypes: de hele reden dat het advies deze extensies laat blokkeren, is
 // dat de filterstack ze niet als threat markeert.
 let lookback = 7d;
-let riskante_extensies = dynamic(["html","htm","shtml","xhtml","svg",
-                                  "js","jse","vbs","vbe","wsf","hta","chm","iso","img"]);
+let riskyExtensions = dynamic(["html","htm","shtml","xhtml","svg",
+                               "js","jse","vbs","vbe","wsf","hta","chm","iso","img"]);
 EmailAttachmentInfo
 | where Timestamp > ago(lookback)
-| where tolower(FileExtension) in (riskante_extensies)
+| where tolower(FileExtension) in (riskyExtensions)
 | join kind=inner (
     EmailEvents
     | where Timestamp > ago(lookback)
@@ -130,11 +130,11 @@ staan beide varianten in de query. Controleer met
 // TimeGenerated. De kolomnamen FileExtension, NetworkMessageId,
 // RecipientEmailAddress en DeliveryLocation zijn identiek.
 let lookback = 7d;
-let riskante_extensies = dynamic(["html","htm","shtml","xhtml","svg",
-                                  "js","jse","vbs","vbe","wsf","hta","chm","iso","img"]);
+let riskyExtensions = dynamic(["html","htm","shtml","xhtml","svg",
+                               "js","jse","vbs","vbe","wsf","hta","chm","iso","img"]);
 EmailAttachmentInfo
 | where TimeGenerated > ago(lookback)
-| where tolower(FileExtension) in (riskante_extensies)
+| where tolower(FileExtension) in (riskyExtensions)
 | join kind=inner (
     EmailEvents
     | where TimeGenerated > ago(lookback)
@@ -146,10 +146,10 @@ EmailAttachmentInfo
   ) on NetworkMessageId, RecipientEmailAddress
 // ExchangeTransportRule leeg = de transportregel uit maatregel 008 heeft niet
 // gepakt. Dat is de controle op de maatregel zelf, niet alleen op de dreiging.
-| extend TransportregelPakte = isnotempty(ExchangeTransportRule)
+| extend TransportRuleCaught = isnotempty(ExchangeTransportRule)
 | project TimeGenerated, RecipientEmailAddress, SenderFromAddress, SenderFromDomain,
           Subject, FileName, FileExtension, SHA256, DeliveryLocation,
-          TransportregelPakte, ExchangeTransportRule, AuthenticationDetails
+          TransportRuleCaught, ExchangeTransportRule, AuthenticationDetails
 | order by TimeGenerated desc
 ```
 

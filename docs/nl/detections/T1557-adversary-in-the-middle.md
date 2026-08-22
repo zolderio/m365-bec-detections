@@ -5,7 +5,7 @@
 | **MITRE-tactiek** | Credential Access, Collection |
 | **Whitepaper-maatregelen** | 004 — Phishing-resistente multifactorauthenticatie (prioriteit Hoog)<br>005 — Microsoft Defender for Office 365 (prioriteit Midden) |
 | **Verwante technieken** | [T1566.002](T1566.002-spearphishing-link.md) — de link die naar de proxy leidt<br>[T1539](T1539-steal-web-session-cookie.md) — het cookie dat de proxy onderschept |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -85,31 +85,31 @@ maatregel 005: zonder Safe Links bestaat `UrlClickEvents` niet.
 // gebruiker de afgelopen 30 dagen nooit vandaan kwam. Er wordt bewust NIET op
 // een phish-verdict gefilterd - juist de kliks zonder verdict zijn het gat dat
 // de Defender-alerts openlaten.
-let venster   = 60m;
-let lookback  = 7d;
-let bekend =
+let window   = 60m;
+let lookback = 7d;
+let known    =
     EntraIdSignInEvents
     | where Timestamp between (ago(37d) .. ago(lookback))
     | where ErrorCode == 0
-    | summarize BekendeIPs = make_set(IPAddress, 200) by AccountUpn;
-let kliks =
+    | summarize KnownIPs = make_set(IPAddress, 200) by AccountUpn;
+let clicks =
     UrlClickEvents
     | where Timestamp > ago(lookback)
     | where Workload == "Email"
-    | project KlikTijd = Timestamp, AccountUpn, Url, UrlChain, ActionType,
+    | project ClickTime = Timestamp, AccountUpn, Url, UrlChain, ActionType,
               IsClickedThrough, ThreatTypes, NetworkMessageId, ReportId;
 EntraIdSignInEvents
 | where Timestamp > ago(lookback)
 | where ErrorCode == 0
 | where ClientAppUsed == "Browser"
-| join kind=inner kliks on AccountUpn
-| where Timestamp between (KlikTijd .. KlikTijd + venster)
-| join kind=leftouter bekend on AccountUpn
-| where isempty(BekendeIPs) or not(set_has_element(BekendeIPs, IPAddress))
-| project KlikTijd, AanmeldTijd = Timestamp, AccountUpn, Url, ThreatTypes,
+| join kind=inner clicks on AccountUpn
+| where Timestamp between (ClickTime .. ClickTime + window)
+| join kind=leftouter known on AccountUpn
+| where isempty(KnownIPs) or not(set_has_element(KnownIPs, IPAddress))
+| project ClickTime, SignInTime = Timestamp, AccountUpn, Url, ThreatTypes,
           IsClickedThrough, IPAddress, Country, City, Application,
           AuthenticationRequirement, ConditionalAccessStatus, SessionId, UserAgent
-| order by AanmeldTijd desc
+| order by SignInTime desc
 ```
 
 `SessionId` staat er niet voor niets in de output: die voer je meteen door in de
@@ -148,13 +148,13 @@ let baseline =
     SigninLogs
     | where TimeGenerated between (ago(37d) .. ago(lookback))
     | where ResultType == "0"
-    | summarize BekendeASN = make_set(AutonomousSystemNumber, 100) by UserPrincipalName;
+    | summarize KnownASN = make_set(AutonomousSystemNumber, 100) by UserPrincipalName;
 SigninLogs
 | where TimeGenerated > ago(lookback)
 | where ResultType == "0"
 | where AuthenticationRequirement == "multiFactorAuthentication"
 | join kind=leftouter baseline on UserPrincipalName
-| where isempty(BekendeASN) or not(set_has_element(BekendeASN, AutonomousSystemNumber))
+| where isempty(KnownASN) or not(set_has_element(KnownASN, AutonomousSystemNumber))
 | project TimeGenerated, UserPrincipalName, IPAddress, AutonomousSystemNumber,
           Location, AppDisplayName, ClientAppUsed, UserAgent,
           ConditionalAccessStatus, RiskLevelDuringSignIn, RiskEventTypes_V2, SessionId

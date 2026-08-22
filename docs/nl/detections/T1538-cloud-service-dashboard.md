@@ -6,7 +6,7 @@
 | **Whitepaper-fase** | 09. Discovery |
 | **Whitepaper-maatregel** | 014 — Beperk toegang tot Microsoft Entra (prioriteit Midden, impact Laag, inspanning Laag) |
 | **Verwante techniek** | [T1562.001](T1562.001-impair-defenses.md) — de drift-query hieronder hoort ook bij maatregel 013 |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -99,14 +99,14 @@ SigninLogs
 | where TimeGenerated > ago(lookback)
 | where ResultType == 0                       // alleen geslaagde aanmeldingen
 | where ResourceDisplayName has "Windows Azure Service Management API"
-| summarize Aanmeldingen = count(),
-            Eerste = min(TimeGenerated),
-            Laatste = max(TimeGenerated),
+| summarize SignIns = count(),
+            First = min(TimeGenerated),
+            Last = max(TimeGenerated),
             IPs = make_set(IPAddress, 20),
-            Landen = make_set(tostring(LocationDetails.countryOrRegion), 10),
+            Countries = make_set(tostring(LocationDetails.countryOrRegion), 10),
             Apps = make_set(AppDisplayName, 10)
     by UserPrincipalName, UserId
-| order by Laatste desc
+| order by Last desc
 ```
 
 Deze query alleen is ruis. Hij wordt bruikbaar als u hem beperkt tot gebruikers
@@ -114,12 +114,12 @@ zonder beheerrol, of tot gebruikers die dit nog niet eerder deden:
 
 ```kql
 // Alleen gebruikers die dit in de 30 dagen ervoor niet deden.
-let bekend = SigninLogs
+let known = SigninLogs
     | where TimeGenerated between (ago(37d) .. ago(7d))
     | where ResourceDisplayName has "Windows Azure Service Management API"
     | distinct UserPrincipalName;
 // ... plaats aan het eind van de query hierboven:
-| where UserPrincipalName !in (bekend)
+| where UserPrincipalName !in (known)
 ```
 
 ## KQL — Sentinel (MicrosoftGraphActivityLogs): de echte Discovery-detectie
@@ -130,7 +130,7 @@ let bekend = SigninLogs
 // het portaal, maar in een script. Vandaar dat de portaalbeperking uit
 // maatregel 014 hier niets tegen doet.
 let lookback = 7d;
-let drempel = 200;                 // aantal directory-reads binnen het venster
+let threshold = 200;                 // aantal directory-reads binnen het window
 MicrosoftGraphActivityLogs
 | where TimeGenerated > ago(lookback)
 | where RequestMethod == "GET"
@@ -141,13 +141,13 @@ MicrosoftGraphActivityLogs
 | extend Endpoint = tostring(split(replace_regex(RequestUri, @'https://[^/]+/(v1\.0|beta)/', ''), '?')[0])
 | summarize Reads = count(),
             Endpoints = dcount(Endpoint),
-            Voorbeelden = make_set(Endpoint, 15),
+            Examples = make_set(Endpoint, 15),
             IPs = make_set(IPAddress, 10),
             UserAgents = make_set(UserAgent, 10),
-            Eerste = min(TimeGenerated),
-            Laatste = max(TimeGenerated)
+            First = min(TimeGenerated),
+            Last = max(TimeGenerated)
     by UserId, AppId, bin(TimeGenerated, 1h)
-| where Reads > drempel
+| where Reads > threshold
 | order by Reads desc
 ```
 
@@ -160,18 +160,18 @@ het interessante geval.
 
 ```kql
 let lookback = 7d;
-let drempel = 200;
+let threshold = 200;
 GraphAPIAuditEvents
 | where Timestamp > ago(lookback)
 | where RequestMethod == "GET"
 | where RequestUri has_any ("/users", "/groups", "/directoryRoles",
                             "/servicePrincipals", "/applications", "/roleManagement")
 | summarize Reads = count(),
-            Voorbeelden = make_set(RequestUri, 15),
+            Examples = make_set(RequestUri, 15),
             IPs = make_set(IpAddress, 10),
-            Eerste = min(Timestamp), Laatste = max(Timestamp)
+            First = min(Timestamp), Last = max(Timestamp)
     by AccountObjectId, ApplicationId, bin(Timestamp, 1h)
-| where Reads > drempel
+| where Reads > threshold
 | order by Reads desc
 ```
 

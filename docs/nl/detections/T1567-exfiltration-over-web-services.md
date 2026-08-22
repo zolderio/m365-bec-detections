@@ -5,7 +5,7 @@
 | **MITRE-tactiek** | Exfiltration |
 | **Whitepaper-maatregel** | 018 — Access Reviews (prioriteit Midden) |
 | **Verwante technieken** | [T1530](T1530-data-from-cloud-storage.md) — het verzamelen; [T1078](T1078-valid-accounts-guest-delegation.md) — de vergeten toegang die hier misbruikt wordt |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -54,7 +54,7 @@ laatste query.
 ## De deelacties die ertoe doen
 
 Microsoft documenteert per manier van delen een eigen event. Voor exfiltratie
-zijn dit de vier die je wilt zien, met de reden waarom:
+zijn dit de gevallen die je wilt zien, met de reden waarom:
 
 | Operatie | Wat Microsoft erover zegt | Waarom dit BEC-relevant is |
 |---|---|---|
@@ -98,9 +98,9 @@ Aanscherpen op werkelijk extern:
 | where Operation in~ ("AnonymousLinkCreated", "AnonymousLinkUsed")
 
 // (c) domeinfilter op de ontvanger, als er een allowlist is (maatregel 017)
-| extend OntvangerDomein = tolower(tostring(split(TargetUserOrGroupName, "@")[1]))
-| where isnotempty(OntvangerDomein)
-| where OntvangerDomein !in~ ("vertrouwdepartner.nl", "vertrouwdeklant.com")   // <-- aanpassen
+| extend RecipientDomain = tolower(tostring(split(TargetUserOrGroupName, "@")[1]))
+| where isnotempty(RecipientDomain)
+| where RecipientDomain !in~ ("trustedpartner.example", "trustedcustomer.example")   // <-- aanpassen
 ```
 
 Het patroon dat er in de praktijk het meest toe doet — een gebruiker die binnen
@@ -112,16 +112,16 @@ OfficeActivity
 | where TimeGenerated > ago(lookback)
 | where Operation in~ ("AnonymousLinkCreated", "SecureLinkCreated", "AddedToSecureLink",
                        "SharingInvitationCreated")
-| extend Pad = tolower(strcat(SourceRelativeUrl, "/", SourceFileName))
-| where Pad has_any ("factuur", "invoice", "iban", "betaling", "payment",
+| extend Path = tolower(strcat(SourceRelativeUrl, "/", SourceFileName))
+| where Path has_any ("factuur", "invoice", "iban", "betaling", "payment",
                      "crediteur", "creditor", "contract", "bankgegevens")
-| summarize Aantal = count(),
-            Bestanden = make_set(SourceFileName, 25),
-            Ontvangers = make_set(TargetUserOrGroupName, 25),
+| summarize Count = count(),
+            Files = make_set(SourceFileName, 25),
+            Recipients = make_set(TargetUserOrGroupName, 25),
             IPs = make_set(ClientIP, 5)
         by UserId, bin(TimeGenerated, 1h)
-| where Aantal >= 3          // <-- drempel afstemmen op je eigen baseline
-| order by Aantal desc
+| where Count >= 3          // <-- threshold afstemmen op je eigen baseline
+| order by Count desc
 ```
 
 ## KQL — Sentinel (AuditLogs): draait maatregel 018 eigenlijk?
@@ -141,9 +141,9 @@ AuditLogs
                            "Apply decision", "Approve decision", "Deny decision",
                            "Auto review", "Auto apply review", "Apply review")
 | extend Actor = tostring(InitiatedBy.user.userPrincipalName)
-| summarize Aantal = count(), Laatste = max(TimeGenerated), Actoren = make_set(Actor, 10)
+| summarize Count = count(), Last = max(TimeGenerated), Actors = make_set(Actor, 10)
         by OperationName, Category
-| order by Laatste desc
+| order by Last desc
 ```
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
@@ -156,11 +156,11 @@ CloudAppEvents
                         "SecureLinkCreated", "AddedToSecureLink",
                         "SharingInvitationCreated", "SharingInvitationAccepted",
                         "SharingSet", "CompanyLinkCreated")
-| extend Ontvanger     = tostring(RawEventData.TargetUserOrGroupName)
-| extend OntvangerType = tostring(RawEventData.TargetUserOrGroupType)
+| extend Recipient     = tostring(RawEventData.TargetUserOrGroupName)
+| extend RecipientType = tostring(RawEventData.TargetUserOrGroupType)
 | extend SiteUrl       = tostring(RawEventData.SiteUrl)
 | project Timestamp, ActionType, AccountDisplayName, AccountObjectId,
-          Ontvanger, OntvangerType, ObjectName, ObjectType, SiteUrl,
+          Recipient, RecipientType, ObjectName, ObjectType, SiteUrl,
           IPAddress, CountryCode, UserAgent, IsExternalUser, UncommonForUser
 | order by Timestamp desc
 ```
@@ -188,5 +188,3 @@ gekopieerd zijn zonder dat er ergens een ontvanger geregistreerd staat.
 - Microsoft, OfficeActivity-schema: https://learn.microsoft.com/en-us/azure/azure-monitor/reference/tables/officeactivity
 - Microsoft, CloudAppEvents-schema: https://learn.microsoft.com/en-us/defender-xdr/advanced-hunting-cloudappevents-table
 - MITRE ATT&CK T1567: https://attack.mitre.org/techniques/T1567/
-</content>
-</invoke>

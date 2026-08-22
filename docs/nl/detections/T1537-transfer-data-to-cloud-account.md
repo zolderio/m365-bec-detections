@@ -6,7 +6,7 @@
 | **Whitepaper-fase** | 10. Lateral Movement |
 | **Whitepaper-maatregel** | 015 — Interne en uitgaande phishingdetectie (prioriteit Midden, impact Hoog, inspanning Midden) |
 | **Verwante technieken** | [T1534](T1534-internal-spearphishing.md) en [T1566.003](T1566.003-spearphishing-via-service.md) — zelfde maatregel |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -63,8 +63,8 @@ Bron: https://learn.microsoft.com/en-us/defender-cloud-apps/anomaly-detection-po
 // organisatie valt. De operationnamen komen letterlijk uit Microsofts
 // auditactiviteiten-referentie.
 let lookback = 7d;
-let EigenDomeinen = dynamic(["eigendomein.nl", "eigendomein.com"]);   // <-- aanpassen
-let DeelOperations = dynamic([
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- aanpassen
+let ShareOperations = dynamic([
     "AnonymousLinkCreated",       // link zonder authenticatie: iedereen die hem heeft
     "SecureLinkCreated",          // beveiligde deel-link
     "AddedToSecureLink",          // iemand toegevoegd aan een bestaande deel-link
@@ -74,16 +74,16 @@ let DeelOperations = dynamic([
 OfficeActivity
 | where TimeGenerated > ago(lookback)
 | where OfficeWorkload in~ ("SharePoint", "OneDrive")
-| where Operation in~ (DeelOperations)
-| extend Ontvanger = coalesce(TargetUserOrGroupName, UserSharedWith)
-| extend OntvangerDomein = tolower(tostring(split(Ontvanger, "@")[1]))
+| where Operation in~ (ShareOperations)
+| extend Recipient = coalesce(TargetUserOrGroupName, UserSharedWith)
+| extend RecipientDomain = tolower(tostring(split(Recipient, "@")[1]))
 // Anonieme links hebben geen ontvanger: die zijn per definitie extern.
-| extend Extern = Operation =~ "AnonymousLinkCreated"
-                  or (isnotempty(OntvangerDomein) and OntvangerDomein !in~ (EigenDomeinen))
-                  or TargetUserOrGroupType in~ ("Guest", "Partner")
-| where Extern
+| extend External = Operation =~ "AnonymousLinkCreated"
+                    or (isnotempty(RecipientDomain) and RecipientDomain !in~ (ownDomains))
+                    or TargetUserOrGroupType in~ ("Guest", "Partner")
+| where External
 | extend ClientIPAddress = case(ClientIP has ".", tostring(split(ClientIP, ":")[0]), ClientIP)
-| project TimeGenerated, UserId, Operation, Ontvanger, OntvangerDomein,
+| project TimeGenerated, UserId, Operation, Recipient, RecipientDomain,
           TargetUserOrGroupType, SourceFileName, SourceFileExtension,
           Site_Url, SourceRelativeUrl, ClientIPAddress, UserAgent, EventSource
 | order by TimeGenerated desc
@@ -100,31 +100,31 @@ gedeeld, of die eerst bulk downloadt en daarna deelt.
 // Burst: veel externe deelacties door een gebruiker binnen een uur, naar een
 // domein dat in de 30 dagen ervoor niet voorkwam.
 let lookback = 7d;
-let EigenDomeinen = dynamic(["eigendomein.nl", "eigendomein.com"]);   // <-- aanpassen
-let DeelOperations = dynamic(["AnonymousLinkCreated", "SecureLinkCreated",
-                              "AddedToSecureLink", "SharingInvitationCreated", "SharingSet"]);
-let BekendeDomeinen =
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- aanpassen
+let ShareOperations = dynamic(["AnonymousLinkCreated", "SecureLinkCreated",
+                               "AddedToSecureLink", "SharingInvitationCreated", "SharingSet"]);
+let KnownDomains =
     OfficeActivity
     | where TimeGenerated between (ago(37d) .. ago(7d))
-    | where Operation in~ (DeelOperations)
+    | where Operation in~ (ShareOperations)
     | extend D = tolower(tostring(split(coalesce(TargetUserOrGroupName, UserSharedWith), "@")[1]))
     | where isnotempty(D)
     | distinct D;
 OfficeActivity
 | where TimeGenerated > ago(lookback)
-| where Operation in~ (DeelOperations)
-| extend OntvangerDomein = tolower(tostring(split(coalesce(TargetUserOrGroupName, UserSharedWith), "@")[1]))
-| where isnotempty(OntvangerDomein)
-| where OntvangerDomein !in~ (EigenDomeinen)
-| where OntvangerDomein !in (BekendeDomeinen)          // nieuw extern domein
-| summarize Acties = count(),
-            Bestanden = dcount(SourceFileName),
-            BestandsLijst = make_set(SourceFileName, 25),
-            Ontvangers = make_set(coalesce(TargetUserOrGroupName, UserSharedWith), 15),
-            Eerste = min(TimeGenerated), Laatste = max(TimeGenerated)
-    by UserId, OntvangerDomein, bin(TimeGenerated, 1h)
-| where Bestanden >= 3
-| order by Bestanden desc
+| where Operation in~ (ShareOperations)
+| extend RecipientDomain = tolower(tostring(split(coalesce(TargetUserOrGroupName, UserSharedWith), "@")[1]))
+| where isnotempty(RecipientDomain)
+| where RecipientDomain !in~ (ownDomains)
+| where RecipientDomain !in (KnownDomains)          // nieuw extern domein
+| summarize Actions = count(),
+            Files = dcount(SourceFileName),
+            FileList = make_set(SourceFileName, 25),
+            Recipients = make_set(coalesce(TargetUserOrGroupName, UserSharedWith), 15),
+            First = min(TimeGenerated), Last = max(TimeGenerated)
+    by UserId, RecipientDomain, bin(TimeGenerated, 1h)
+| where Files >= 3
+| order by Files desc
 ```
 
 En de bulk-download die er vaak aan voorafgaat:
@@ -132,35 +132,35 @@ En de bulk-download die er vaak aan voorafgaat:
 ```kql
 // Ongewoon veel gedownloade bestanden door één account binnen een uur.
 let lookback = 7d;
-let drempel = 100;                 // ijk op de eigen organisatie
+let threshold = 100;                 // ijk op de eigen organisatie
 OfficeActivity
 | where TimeGenerated > ago(lookback)
 | where Operation in~ ("FileDownloaded", "FileSyncDownloadedFull")
-| summarize Bestanden = dcount(SourceFileName),
-            Extensies = make_set(SourceFileExtension, 15),
+| summarize Files = dcount(SourceFileName),
+            Extensions = make_set(SourceFileExtension, 15),
             Sites = make_set(Site_Url, 10),
             IPs = make_set(ClientIP, 10)
     by UserId, bin(TimeGenerated, 1h)
-| where Bestanden > drempel
-| order by Bestanden desc
+| where Files > threshold
+| order by Files desc
 ```
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
 
 ```kql
 let lookback = 7d;
-let DeelActies = dynamic(["AnonymousLinkCreated", "SecureLinkCreated",
-                          "AddedToSecureLink", "SharingInvitationCreated",
-                          "CompanyLinkCreated", "SharingSet"]);
+let ShareActions = dynamic(["AnonymousLinkCreated", "SecureLinkCreated",
+                            "AddedToSecureLink", "SharingInvitationCreated",
+                            "CompanyLinkCreated", "SharingSet"]);
 CloudAppEvents
 | where Timestamp > ago(lookback)
-| where ActionType in~ (DeelActies)
-| extend Doel = tostring(RawEventData.TargetUserOrGroupName)
-| extend DoelType = tostring(RawEventData.TargetUserOrGroupType)
-| extend Bestand = tostring(RawEventData.SourceFileName)
-| where ActionType =~ "AnonymousLinkCreated" or DoelType in~ ("Guest", "Partner")
-| project Timestamp, AccountDisplayName, AccountObjectId, ActionType, Doel,
-          DoelType, Bestand, ObjectName, IPAddress, CountryCode, UserAgent,
+| where ActionType in~ (ShareActions)
+| extend Target = tostring(RawEventData.TargetUserOrGroupName)
+| extend TargetType = tostring(RawEventData.TargetUserOrGroupType)
+| extend File = tostring(RawEventData.SourceFileName)
+| where ActionType =~ "AnonymousLinkCreated" or TargetType in~ ("Guest", "Partner")
+| project Timestamp, AccountDisplayName, AccountObjectId, ActionType, Target,
+          TargetType, File, ObjectName, IPAddress, CountryCode, UserAgent,
           IsExternalUser, UncommonForUser
 | order by Timestamp desc
 ```

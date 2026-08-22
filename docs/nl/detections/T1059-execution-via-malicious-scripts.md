@@ -7,7 +7,7 @@
 | **MITRE-tactiek** | Execution (TA0002) |
 | **Whitepaper-maatregel** | 008 — Blokkeren van riskante extensies (prioriteit Hoog) |
 | **Verwante techniek** | [T1204](T1204-user-execution.md) — dezelfde maatregel, de mailkant in plaats van de endpointkant |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 ## Aanbeveling
 
@@ -93,8 +93,8 @@ DeviceEvents
 // RuleId maakt achteraf hard welke regel vuurde; handig bij het tunen van
 // uitzonderingen. AdditionalFields is hier een string, dus extractjson kan.
 | extend RuleId = extractjson("$Ruleid", AdditionalFields, typeof(string))
-| extend Modus = iff(ActionType endswith "Blocked", "Geblokkeerd", "Alleen geaudit")
-| project Timestamp, DeviceName, ActionType, Modus, RuleId, FileName, FolderPath,
+| extend Mode = iff(ActionType endswith "Blocked", "Blocked", "Audit only")
+| project Timestamp, DeviceName, ActionType, Mode, RuleId, FileName, FolderPath,
           ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessCommandLine,
           InitiatingProcessAccountUpn
 | order by Timestamp desc
@@ -109,18 +109,18 @@ DeviceEvents
 let lookback = 7d;
 let interpreters = dynamic(["wscript.exe","cscript.exe","mshta.exe","powershell.exe",
                             "pwsh.exe","cmd.exe","rundll32.exe","regsvr32.exe"]);
-let mailenbrowser = dynamic(["outlook.exe","olk.exe","msedge.exe","chrome.exe",
-                             "firefox.exe","winword.exe","excel.exe"]);
+let mailAndBrowser = dynamic(["outlook.exe","olk.exe","msedge.exe","chrome.exe",
+                              "firefox.exe","winword.exe","excel.exe"]);
 DeviceProcessEvents
 | where Timestamp > ago(lookback)
 | where FileName in~ (interpreters)
-| where InitiatingProcessFileName in~ (mailenbrowser)
+| where InitiatingProcessFileName in~ (mailAndBrowser)
 // Bijlagen die vanuit Outlook worden geopend, worden eerst uitgepakt naar de
 // Content.Outlook-map onder INetCache. Een script dat daaruit of uit Downloads
 // draait, is bijna nooit een bedrijfsproces.
-| extend UitBijlageOfDownload = ProcessCommandLine has_any (
+| extend FromAttachmentOrDownload = ProcessCommandLine has_any (
     @"Content.Outlook", @"INetCache", @"\Downloads\", @"\Temp\")
-| where UitBijlageOfDownload
+| where FromAttachmentOrDownload
 | project Timestamp, DeviceName, AccountUpn, FileName, ProcessCommandLine,
           InitiatingProcessFileName, InitiatingProcessCommandLine, FolderPath
 | order by Timestamp desc
@@ -139,8 +139,8 @@ DeviceEvents
 | where ActionType has_any ("ScriptExecutable", "ObfuscatedScript",
                             "ExecutableEmailContent", "OfficeCommAppChildProcess")
 | extend RuleId = tostring(AdditionalFields.Ruleid)
-| extend Modus = iff(ActionType endswith "Blocked", "Geblokkeerd", "Alleen geaudit")
-| project TimeGenerated, DeviceName, ActionType, Modus, RuleId, FileName, FolderPath,
+| extend Mode = iff(ActionType endswith "Blocked", "Blocked", "Audit only")
+| project TimeGenerated, DeviceName, ActionType, Mode, RuleId, FileName, FolderPath,
           ProcessCommandLine, InitiatingProcessFileName, InitiatingProcessCommandLine,
           InitiatingProcessAccountUpn
 | order by TimeGenerated desc

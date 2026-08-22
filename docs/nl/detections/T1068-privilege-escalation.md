@@ -6,8 +6,8 @@
 | **Naam in MITRE ATT&CK** | Exploitation for Privilege Escalation |
 | **MITRE-tactiek** | Privilege Escalation (TA0004) |
 | **Whitepaper-maatregel** | 010 — Least Privilege-principe & PIM (prioriteit Midden) |
-| **Verwante technieken** | [T1098.001](T1098.001-additional-cloud-credentials.md) — MITRE plaatst die techniek óók onder Privilege Escalation |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Verwante techniek** | [T1098.001](T1098.001-additional-cloud-credentials.md) — MITRE plaatst die techniek óók onder Privilege Escalation |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 > **Scopeverschil, bewust benoemd.** MITRE beschrijft T1068 als het misbruiken
 > van softwarekwetsbaarheden om lokaal of kernel-niveau rechten te krijgen, met
@@ -124,7 +124,7 @@ detectieprobleem maar een loggingprobleem.
 // bij: als de organisatie PIM gebruikt, is het onderscheid tussen "via PIM" en
 // "erbuiten om" precies wat je wilt zien.
 let lookback = 30d;
-let gevoelige_rollen = dynamic([
+let sensitiveRoles = dynamic([
     "Global Administrator","Privileged Role Administrator","Privileged Authentication Administrator",
     "Exchange Administrator","Security Administrator","Application Administrator",
     "Cloud Application Administrator","User Administrator","Authentication Administrator",
@@ -143,16 +143,16 @@ AuditLogs
 | extend ActorIP = tostring(InitiatedBy.user.ipAddress)
 // De doelgebruiker en de rolnaam zitten in verschillende elementen van
 // TargetResources; mv-expand voorkomt dat je de rolnaam mist door een vaste index.
-| mv-expand Doel = TargetResources
-| extend DoelType = tostring(Doel.type)
-| extend DoelNaam = coalesce(tostring(Doel.userPrincipalName), tostring(Doel.displayName))
-| extend RolNaam  = tostring(parse_json(tostring(Doel.modifiedProperties))[1].newValue)
-| extend RolNaam  = trim('"', tostring(RolNaam))
-| extend Gevoelig = RolNaam in (gevoelige_rollen)
+| mv-expand Target = TargetResources
+| extend TargetType = tostring(Target.type)
+| extend TargetName = coalesce(tostring(Target.userPrincipalName), tostring(Target.displayName))
+| extend RoleName   = tostring(parse_json(tostring(Target.modifiedProperties))[1].newValue)
+| extend RoleName   = trim('"', tostring(RoleName))
+| extend Sensitive  = RoleName in (sensitiveRoles)
 // LoggedByService laat zien of PIM de toewijzing deed. Is dat niet zo bij een
 // tenant die PIM gebruikt, dan is dit de "assigned outside of PIM"-situatie.
-| project TimeGenerated, OperationName, Actor, ActorIP, DoelType, DoelNaam,
-          RolNaam, Gevoelig, LoggedByService, CorrelationId
+| project TimeGenerated, OperationName, Actor, ActorIP, TargetType, TargetName,
+          RoleName, Sensitive, LoggedByService, CorrelationId
 | order by TimeGenerated desc
 ```
 
@@ -176,12 +176,12 @@ AuditLogs
 | where OperationName in ("Add member to role", "Add eligible member to role")
 | where Result == "success"
 | where LoggedByService !has "Privileged Identity Management"
-| extend Actor    = tostring(InitiatedBy.user.userPrincipalName)
-| extend ActorIP  = tostring(InitiatedBy.user.ipAddress)
-| mv-expand Doel = TargetResources
-| extend DoelNaam = coalesce(tostring(Doel.userPrincipalName), tostring(Doel.displayName))
-| project TimeGenerated, OperationName, LoggedByService, Actor, ActorIP, DoelNaam,
-          Doel, CorrelationId
+| extend Actor   = tostring(InitiatedBy.user.userPrincipalName)
+| extend ActorIP = tostring(InitiatedBy.user.ipAddress)
+| mv-expand Target = TargetResources
+| extend TargetName = coalesce(tostring(Target.userPrincipalName), tostring(Target.displayName))
+| project TimeGenerated, OperationName, LoggedByService, Actor, ActorIP, TargetName,
+          Target, CorrelationId
 | order by TimeGenerated desc
 ```
 
@@ -196,7 +196,7 @@ schrijfwijze van de PIM-waarde is **niet geverifieerd**.
 // Dit is de query die je gebruikt om te controleren of dat alert compleet is —
 // en om er een eigen, hoger gewaardeerde regel op te bouwen.
 let lookback = 30d;
-let kritieke_rolgroepen = dynamic([
+let criticalRoleGroups = dynamic([
     "Organization Management","Recipient Management","Compliance Management",
     "Discovery Management","Records Management","Security Administrator",
     "Hygiene Management","View-Only Organization Management"]);
@@ -207,9 +207,9 @@ OfficeActivity
                        "New-RoleGroup", "New-ManagementRoleAssignment",
                        "Add-MailboxPermission")
 | extend Params = tostring(Parameters)
-| extend Rolgroep = extract(@"(?i)""Name""\s*:\s*""Identity""\s*,\s*""Value""\s*:\s*""([^""]+)""", 1, Params)
-| extend Kritiek = Rolgroep in~ (kritieke_rolgroepen)
-| project TimeGenerated, UserId, Operation, ClientIP, Rolgroep, Kritiek, Params,
+| extend RoleGroup = extract(@"(?i)""Name""\s*:\s*""Identity""\s*,\s*""Value""\s*:\s*""([^""]+)""", 1, Params)
+| extend Critical = RoleGroup in~ (criticalRoleGroups)
+| project TimeGenerated, UserId, Operation, ClientIP, RoleGroup, Critical, Params,
           OriginatingServer
 | order by TimeGenerated desc
 ```

@@ -7,7 +7,7 @@
 | **MITRE-tactiek** | Persistence (TA0003) |
 | **Whitepaper-maatregel** | 009 — OAuth-app consent beperken of uitschakelen (prioriteit Hoog) |
 | **Verwante technieken** | [T1098.001](T1098.001-additional-cloud-credentials.md) — credentials op de app die consent kreeg; [T1204](T1204-user-execution.md) — de klik die eraan voorafgaat |
-| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [TESTING.md](../teststatus.md) |
+| **Status van deze detectie** | KQL niet uitgevoerd tegen een productie-tenant — zie [teststatus](../teststatus.md) |
 
 > MITRE hernoemde T1671 naar **Cloud Application Integration**; het advies
 > gebruikt de oudere aanduiding *Illicit Consent Grant*. Zelfde techniek-ID,
@@ -123,7 +123,7 @@ plaats van op een exacte string, zodat beide schrijfwijzen worden gevangen.
 // dus we serialiseren het geheel en zoeken er tekstueel in. Dat is grover dan
 // een geparste lookup, maar het breekt niet als Microsoft de volgorde wijzigt.
 let lookback = 30d;
-let risicoscopes = dynamic([
+let riskScopes = dynamic([
     "Mail.Read","Mail.ReadWrite","Mail.ReadBasic","Mail.Send",
     "MailboxSettings.ReadWrite","full_access_as_app","EWS.AccessAsUser.All",
     "Files.ReadWrite.All","Directory.ReadWrite.All","offline_access",
@@ -135,32 +135,32 @@ AuditLogs
                           "Grant contextual consent to application")
       or OperationName has "app role assignment"
 | where Result == "success"
-| extend Actor       = tostring(InitiatedBy.user.userPrincipalName)
-| extend ActorIP     = tostring(InitiatedBy.user.ipAddress)
-| extend AppNaam     = tostring(TargetResources[0].displayName)
-| extend AppObjectId = tostring(TargetResources[0].id)
-| extend Props       = tostring(TargetResources[0].modifiedProperties)
+| extend Actor         = tostring(InitiatedBy.user.userPrincipalName)
+| extend ActorIP       = tostring(InitiatedBy.user.ipAddress)
+| extend AppName       = tostring(TargetResources[0].displayName)
+| extend AppObjectId   = tostring(TargetResources[0].id)
+| extend Props         = tostring(TargetResources[0].modifiedProperties)
 // IsAdminConsent onderscheidt "één gebruiker gaf toestemming voor zichzelf" van
 // "de hele tenant is opengezet". Microsoft wijst dit veld ook aan in de
 // remediatiehandleiding voor illicit consent grants.
-| extend AdminConsent = Props has "ConsentContext.IsAdminConsent" and Props has "True"
+| extend AdminConsent  = Props has "ConsentContext.IsAdminConsent" and Props has "True"
 // extract_all haalt alle scope-achtige strings uit de property-blob; de
 // doorsnede met de lijst hierboven houdt alleen de scopes over die ertoe doen.
-| extend GeraakteScopes = set_intersect(
-        risicoscopes,
+| extend MatchedScopes = set_intersect(
+        riskScopes,
         extract_all(@"([A-Za-z]+\.[A-Za-z\.]+|full_access_as_app)", Props))
-| where AdminConsent or array_length(GeraakteScopes) > 0
-| project TimeGenerated, OperationName, Actor, ActorIP, AppNaam, AppObjectId,
-          AdminConsent, GeraakteScopes, Props, CorrelationId
+| where AdminConsent or array_length(MatchedScopes) > 0
+| project TimeGenerated, OperationName, Actor, ActorIP, AppName, AppObjectId,
+          AdminConsent, MatchedScopes, Props, CorrelationId
 | order by TimeGenerated desc
 ```
 
 Simpeler en robuuster als je de scope-extractie niet vertrouwt:
 
 ```kql
-| extend RaaktMail = Props has_any ("Mail.Read","Mail.ReadWrite","Mail.Send",
-                                    "MailboxSettings","full_access_as_app","EWS.AccessAsUser.All")
-| where RaaktMail or AdminConsent
+| extend TouchesMail = Props has_any ("Mail.Read","Mail.ReadWrite","Mail.Send",
+                                      "MailboxSettings","full_access_as_app","EWS.AccessAsUser.All")
+| where TouchesMail or AdminConsent
 ```
 
 ## KQL — Sentinel: consent kort na een sign-in vanaf een onbekend IP
@@ -170,30 +170,30 @@ Simpeler en robuuster als je de scope-extractie niet vertrouwt:
 // afwijkt. Dit is de brug tussen T1204 (de klik) en deze techniek.
 let baseline = 30d;
 let recent   = 7d;
-let venster  = 30m;
-let bekendeIPs =
+let window   = 30m;
+let knownIPs =
     SigninLogs
     | where TimeGenerated between (ago(baseline) .. ago(recent))
     | where ResultType == "0"
     | distinct UserPrincipalName, IPAddress;
-let verdachteSignins =
+let suspiciousSignIns =
     SigninLogs
     | where TimeGenerated > ago(recent)
     | where ResultType == "0"
-    | join kind=leftanti bekendeIPs on UserPrincipalName, IPAddress
-    | project SigninTijd = TimeGenerated, UserPrincipalName, IPAddress,
-              Land = tostring(LocationDetails.countryOrRegion), UserAgent;
+    | join kind=leftanti knownIPs on UserPrincipalName, IPAddress
+    | project SignInTime = TimeGenerated, UserPrincipalName, IPAddress,
+              Country = tostring(LocationDetails.countryOrRegion), UserAgent;
 AuditLogs
 | where TimeGenerated > ago(recent)
 | where OperationName in ("Consent to application", "Add delegated permission grant")
 | where Result == "success"
 | extend UserPrincipalName = tostring(InitiatedBy.user.userPrincipalName)
-| extend AppNaam = tostring(TargetResources[0].displayName)
-| join kind=inner verdachteSignins on UserPrincipalName
-| where TimeGenerated between (SigninTijd .. SigninTijd + venster)
-| project ConsentTijd = TimeGenerated, UserPrincipalName, AppNaam,
-          SigninTijd, IPAddress, Land, UserAgent
-| order by ConsentTijd desc
+| extend AppName = tostring(TargetResources[0].displayName)
+| join kind=inner suspiciousSignIns on UserPrincipalName
+| where TimeGenerated between (SignInTime .. SignInTime + window)
+| project ConsentTime = TimeGenerated, UserPrincipalName, AppName,
+          SignInTime, IPAddress, Country, UserAgent
+| order by ConsentTime desc
 ```
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
