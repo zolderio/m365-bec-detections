@@ -1,0 +1,4 @@
+site/
+.venv-docs/
+__pycache__/
+.DS_Store

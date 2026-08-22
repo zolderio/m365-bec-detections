@@ -1,0 +1,76 @@
+site_name: BEC-detecties voor Microsoft 365
+site_description: Detectie-logica bij de 19 maatregelen uit het NCSC/Cyclotron BEC Technisch advies
+site_url: https://zolderio.github.io/m365-bec-detections/
+repo_url: https://github.com/zolderio/m365-bec-detections
+repo_name: zolderio/m365-bec-detections
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: nl
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Donker thema
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Licht thema
+  features:
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - toc.follow
+
+plugins:
+  - search:
+      lang:
+        - nl
+        - en
+  - i18n:
+      docs_structure: folder
+      reconfigure_material: true
+      languages:
+        - locale: nl
+          name: Nederlands
+          default: true
+          build: true
+        - locale: en
+          name: English
+          build: true
+          nav_translations:
+            Overzicht: Overview
+            Teststatus: Test status
+            Detecties: Detections
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/zolderio/m365-bec-detections
