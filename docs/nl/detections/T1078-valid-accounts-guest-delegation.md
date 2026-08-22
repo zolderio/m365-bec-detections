@@ -55,6 +55,17 @@ Zonder maatregel 012 (UAL aan) doen de `OfficeActivity`-queries niets.
 
 ## KQL — Sentinel (AuditLogs, SigninLogs, OfficeActivity)
 
+<!-- query
+platform: sentinel
+name: Guest account invited or invitation redeemed
+technique: T1078
+severity: Low
+tactics: [InitialAccess, Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // 1. Gastaccounts die worden uitgenodigd en ingewisseld. De gedocumenteerde
 //    Entra-auditactiviteiten staan onder de categorie UserManagement.
@@ -72,6 +83,17 @@ AuditLogs
 | order by TimeGenerated desc
 ```
 
+<!-- query
+platform: sentinel
+name: Dormant guest account signs in again
+technique: T1078
+severity: Medium
+tactics: [InitialAccess, Persistence]
+interval: P1D
+lookback: P60D
+parameters: []
+deployable: true
+-->
 ```kql
 // 2. Gastaccount dat na langere stilte weer inlogt. Dat is het patroon van
 //    'vergeten toegang' uit maatregel 018 en het patroon van een overgenomen
@@ -95,6 +117,17 @@ SigninLogs
 | order by TimeGenerated desc
 ```
 
+<!-- query
+platform: sentinel
+name: Guest user activity in SharePoint or OneDrive
+technique: T1078
+severity: Informational
+tactics: [Collection]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 // 3. Wat de gast vervolgens doet in SharePoint/OneDrive. Bij deelacties staat
 //    de ontvanger in TargetUserOrGroupName en is TargetUserOrGroupType 'Guest';
@@ -110,6 +143,17 @@ OfficeActivity
 | order by TimeGenerated desc
 ```
 
+<!-- query
+platform: sentinel
+name: Mailbox delegation or folder permission granted
+technique: T1078
+severity: Medium
+tactics: [Collection, Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // 4. Delegatie op de mailbox — dezelfde logica, andere workload.
 //    Uitgebreide variant met parameter-extractie staat in T1114.002.
@@ -124,6 +168,17 @@ OfficeActivity
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents, EntraIdSignInEvents)
 
+<!-- query
+platform: defender-xdr
+name: External user activity summarised across connected cloud apps
+technique: T1078
+severity: Informational
+tactics: [Collection]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 // Activiteit van externe gebruikers over alle aangesloten workloads heen.
 // IsExternalUser is een gedocumenteerde kolom van CloudAppEvents.
@@ -141,6 +196,17 @@ CloudAppEvents
 | order by Actions desc
 ```
 
+<!-- query
+platform: defender-xdr
+name: Guest account signs in to a resource it never used before
+technique: T1078
+severity: Medium
+tactics: [InitialAccess, Collection]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 ```kql
 // Gastaccounts die een resource benaderen die ze niet eerder benaderden.
 // EntraIdSignInEvents vereist Entra ID P2; tot 19 okt 2026 heet deze tabel
@@ -168,6 +234,17 @@ Maatregel 017 vraagt om een allowlist van vertrouwde domeinen. Zolang die er is,
 is het interessante geval een gast van buiten die lijst. Vervang in query 1 en 2
 de laatste filterregel:
 
+<!-- query
+platform: sentinel
+name: Guest activity filtered to domains outside the trusted partner list
+technique: T1078
+severity: Low
+tactics: [InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: [trustedPartners]
+deployable: false
+-->
 ```kql
 | extend GuestDomain = tolower(tostring(split(replace_string(Guest, "_", "@"), "@")[-1]))
 | where GuestDomain !in~ ("trustedpartner.example", "trustedcustomer.example")   // <-- aanpassen

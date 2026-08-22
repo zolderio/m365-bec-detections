@@ -99,6 +99,17 @@ from [T1564.008](T1564.008-email-hiding-rules.md).
 This query runs unchanged in both environments; `EmailEvents` has the same
 column names in Sentinel as in advanced hunting.
 
+<!-- query
+platform: sentinel
+name: Intra-org mail with a phishing or malware verdict
+technique: T1534
+severity: High
+tactics: [LateralMovement]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Internal mail labelled as phishing or malware by the filter stack.
 // EmailDirection "Intra-org" is the crux: this is mail from an own account to
@@ -133,6 +144,17 @@ a bank account number. There is no filter verdict for that. What you can see is
 the pattern: a single internal sender who, in a short period, sends the same
 subject to an unusually large number of internal recipients.
 
+<!-- query
+platform: defender-xdr
+name: Internal sender with an unusual fan-out on a single subject
+technique: T1534
+severity: Medium
+tactics: [LateralMovement]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Internal sender with an unusual fan-out on a single subject.
 // Tune Ontvangers and the window to your own organisation; in a tenant with
@@ -162,6 +184,17 @@ with a fresh inbox rule from
 
 ## KQL — Defender XDR: clicks on internal links
 
+<!-- query
+platform: defender-xdr
+name: Clicks by internal recipients on links in intra-org mail
+technique: T1534
+severity: Medium
+tactics: [LateralMovement]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Clicks by internal recipients on links from intra-org mail.
 // Requires EnableForInternalSenders $true in the Safe Links policy; otherwise
@@ -189,6 +222,17 @@ movement step.
 Do not just switch the three alert policies on but also ingest them, so that
 they sit alongside your own rules in the same incident stream:
 
+<!-- query
+platform: sentinel
+name: Outbound sending restriction and suspicious sending pattern alerts
+technique: T1534
+severity: Medium
+tactics: [LateralMovement]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Titles match the policy names from alert-policies literally.
 // The ServiceSource value for these policies is not verified; filter on

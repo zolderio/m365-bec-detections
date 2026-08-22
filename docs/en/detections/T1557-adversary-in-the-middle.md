@@ -80,6 +80,17 @@ without Safe Links, `UrlClickEvents` does not exist.
 
 ## KQL — Defender XDR: click followed by a sign-in from a new ASN
 
+<!-- query
+platform: defender-xdr
+name: Link click followed within an hour by a sign-in from an unseen IP address
+technique: T1557
+severity: Medium
+tactics: [CredentialAccess, InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // The AiTM signature in telemetry: a user clicks a link, and within an hour
 // there is a successful sign-in from a network that user has never come from in
@@ -120,6 +131,17 @@ theft query from [T1539](T1539-steal-web-session-cookie.md).
 
 This query comes from the Microsoft documentation of the `UrlClickEvents` table.
 
+<!-- query
+platform: defender-xdr
+name: User clicked through a Safe Links warning on a phishing URL
+technique: T1557
+severity: Medium
+tactics: [CredentialAccess, InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Search for malicious links where user was allowed to proceed through
 UrlClickEvents
@@ -140,6 +162,17 @@ signal that is already available with Entra ID P1: a successful sign-in where
 Entra itself already saw risk, or where MFA was satisfied from an unknown
 network.
 
+<!-- query
+platform: sentinel
+name: Successful MFA sign-in from an autonomous system not seen for this user
+technique: T1557
+severity: Medium
+tactics: [CredentialAccess]
+interval: P1D
+lookback: P14D
+parameters: []
+deployable: true
+-->
 ```kql
 // Successful sign-ins from an ASN this user did not use in the preceding
 // 30 days. In an AiTM attack the attacker signs in with a stolen token from
@@ -165,6 +198,17 @@ SigninLogs
 
 And to retrieve the Entra detection if you do have the E5 combination:
 
+<!-- query
+platform: sentinel
+name: Entra ID risk detection for adversary-in-the-middle
+technique: T1557
+severity: High
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 AADUserRiskEvents
 | where TimeGenerated > ago(30d)

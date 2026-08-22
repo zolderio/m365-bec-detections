@@ -88,6 +88,17 @@ tabel Safe Links vereist en dus MDO.
 
 ## KQL — Defender XDR advanced hunting (EmailAttachmentInfo + EmailEvents)
 
+<!-- query
+platform: defender-xdr
+name: Script or HTML attachment delivered to the inbox
+technique: T1204
+severity: Medium
+tactics: [Execution]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Bijlagen met een script- of HTML-extensie die daadwerkelijk in een mailbox
 // zijn beland. De filterlogica staat bewust op DeliveryLocation en niet op
@@ -125,6 +136,17 @@ staan beide varianten in de query. Controleer met
 
 ## KQL — Microsoft Sentinel (EmailAttachmentInfo + EmailEvents)
 
+<!-- query
+platform: sentinel
+name: Script or HTML attachment delivered without a transport rule match
+technique: T1204
+severity: Medium
+tactics: [Execution]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Zelfde detectie in Sentinel. Verschil met Defender XDR: de tijdkolom heet
 // TimeGenerated. De kolomnamen FileExtension, NetworkMessageId,
@@ -159,6 +181,17 @@ Een `.html`-bijlage van een bekende leverancier is meestal een factuurrapport.
 Dezelfde bijlage van een afzender waarmee nog nooit gemaild is, is dat niet.
 `EmailEvents` heeft daar een kolom voor:
 
+<!-- query
+platform: defender-xdr
+name: Risky attachment from a first-contact sender with failing authentication
+technique: T1204
+severity: Medium
+tactics: [Execution, InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 | where IsFirstContact == 1        // in Sentinel is dit een bool: == true
 | where AuthenticationDetails has_any ("fail", "softpass", "none")

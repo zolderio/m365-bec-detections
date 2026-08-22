@@ -69,6 +69,18 @@ someone outside the organisation the value is **`Guest`**.
 
 ## KQL — Sentinel (OfficeActivity)
 
+<!-- query
+platform: sentinel
+name: External file sharing operations in SharePoint and OneDrive
+technique: T1567
+severity: Low
+tactics: [Exfiltration]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Sharing outwards: anonymous links, specific-people links and invitations.
 // AddedToSecureLink is explicitly included because SecureLinkCreated does not
@@ -89,6 +101,18 @@ OfficeActivity
 
 Sharpening it to genuinely external:
 
+<!-- query
+platform: sentinel
+name: External sharing narrowed to guest recipients, anonymous links or non-allowlisted domains
+technique: T1567
+severity: Low
+tactics: [Exfiltration]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // (a) recipients outside the organisation only
 | where TargetUserOrGroupType =~ "Guest"
@@ -104,6 +128,18 @@ Sharpening it to genuinely external:
 
 The pattern that matters most in practice — a user creating several external
 sharing links on financial documents within one hour:
+
+<!-- query
+platform: sentinel
+name: Multiple external sharing links on finance-related documents within one hour
+technique: T1567
+severity: Medium
+tactics: [Exfiltration]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 
 ```kql
 let lookback = 7d;
@@ -128,6 +164,18 @@ OfficeActivity
 This query detects no attacker but the absence of the measure. With 018 that is
 the point: forgotten access arises because nobody reviews it.
 
+<!-- query
+platform: sentinel
+name: Access review activity in the tenant (control assurance check)
+technique: T1567
+severity: Informational
+tactics: [Exfiltration]
+interval: P1D
+lookback: P90D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Access reviews that have been created, ended, or whose decisions have been
 // applied. If this returns nothing over 90 days, the measure exists on paper
@@ -146,6 +194,18 @@ AuditLogs
 ```
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
+
+<!-- query
+platform: defender-xdr
+name: External sharing operations seen through Defender for Cloud Apps
+technique: T1567
+severity: Low
+tactics: [Exfiltration]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 
 ```kql
 let lookback = 7d;

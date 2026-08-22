@@ -79,6 +79,17 @@ maatregel 005: zonder Safe Links bestaat `UrlClickEvents` niet.
 
 ## KQL — Defender XDR: klik gevolgd door aanmelding vanaf een nieuwe ASN
 
+<!-- query
+platform: defender-xdr
+name: Link click followed within an hour by a sign-in from an unseen IP address
+technique: T1557
+severity: Medium
+tactics: [CredentialAccess, InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // De AiTM-handtekening in telemetrie: een gebruiker klikt op een link, en
 // binnen een uur is er een geslaagde aanmelding vanaf een netwerk waar die
@@ -119,6 +130,17 @@ sessiediefstal-query uit [T1539](T1539-steal-web-session-cookie.md).
 
 Deze query komt uit de Microsoft-documentatie van de `UrlClickEvents`-tabel.
 
+<!-- query
+platform: defender-xdr
+name: User clicked through a Safe Links warning on a phishing URL
+technique: T1557
+severity: Medium
+tactics: [CredentialAccess, InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Search for malicious links where user was allowed to proceed through
 UrlClickEvents
@@ -138,6 +160,17 @@ Zonder `UrlClickEvents` — of als aanvulling erop — is dit het bruikbaarste
 signaal dat met Entra ID P1 al beschikbaar is: een geslaagde aanmelding waarbij
 Entra zelf al risico zag, of waarbij MFA is voldaan vanaf een onbekend netwerk.
 
+<!-- query
+platform: sentinel
+name: Successful MFA sign-in from an autonomous system not seen for this user
+technique: T1557
+severity: Medium
+tactics: [CredentialAccess]
+interval: P1D
+lookback: P14D
+parameters: []
+deployable: true
+-->
 ```kql
 // Geslaagde aanmeldingen vanaf een ASN die deze gebruiker in de voorgaande
 // 30 dagen niet gebruikte. Bij AiTM meldt de aanvaller zich aan met een
@@ -163,6 +196,17 @@ SigninLogs
 
 En om de Entra-detectie op te halen als je de E5-combinatie wél hebt:
 
+<!-- query
+platform: sentinel
+name: Entra ID risk detection for adversary-in-the-middle
+technique: T1557
+severity: High
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 AADUserRiskEvents
 | where TimeGenerated > ago(30d)

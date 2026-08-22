@@ -117,6 +117,18 @@ plaats van op een exacte string, zodat beide schrijfwijzen worden gevangen.
 
 ## KQL — Sentinel (AuditLogs): consent met risicovolle scopes
 
+<!-- query
+platform: sentinel
+name: OAuth consent or permission grant covering mail or directory scopes
+technique: T1671
+severity: Medium
+tactics: [Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
+
 ```kql
 // Consent en permission grants, met de mailscopes eruit gelicht. De scopes staan
 // in modifiedProperties; welke property dat precies is verschilt per activiteit,
@@ -157,6 +169,18 @@ AuditLogs
 
 Simpeler en robuuster als je de scope-extractie niet vertrouwt:
 
+<!-- query
+platform: sentinel
+name: Consent grant filtered down to mail scopes or admin consent
+technique: T1671
+severity: Medium
+tactics: [Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
+
 ```kql
 | extend TouchesMail = Props has_any ("Mail.Read","Mail.ReadWrite","Mail.Send",
                                       "MailboxSettings","full_access_as_app","EWS.AccessAsUser.All")
@@ -164,6 +188,18 @@ Simpeler en robuuster als je de scope-extractie niet vertrouwt:
 ```
 
 ## KQL — Sentinel: consent kort na een sign-in vanaf een onbekend IP
+
+<!-- query
+platform: sentinel
+name: OAuth consent granted shortly after sign-in from an unfamiliar IP
+technique: T1671
+severity: High
+tactics: [Persistence]
+interval: P1D
+lookback: P14D
+parameters: []
+deployable: true
+-->
 
 ```kql
 // Een consentgrant is pas verdacht als hij uit een sessie komt die zelf al
@@ -198,6 +234,18 @@ AuditLogs
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
 
+<!-- query
+platform: defender-xdr
+name: OAuth consent events seen through Defender for Cloud Apps
+technique: T1671
+severity: Medium
+tactics: [Persistence]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Entra-consentevents komen binnen onder Application "Office 365". De punt aan
 // het eind van de ActionType-waarde staat in Microsofts eigen hunting-query
@@ -224,6 +272,18 @@ query niets teruggeeft terwijl je weet dat er consent is verleend, inspecteer
 dan eerst `RawEventData` van één event en pas de indexen aan.
 
 ## KQL — app governance-alerts terugvinden
+
+<!-- query
+platform: defender-xdr
+name: App governance alerts about OAuth apps and consent
+technique: T1671
+severity: Medium
+tactics: [Persistence]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // Als app governance aan staat, komen de alerts in AlertInfo. Handig om vast te

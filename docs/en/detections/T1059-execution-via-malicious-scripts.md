@@ -81,6 +81,17 @@ this is endpoint telemetry and not M365 audit telemetry.
 
 ## KQL — Defender XDR advanced hunting (DeviceEvents)
 
+<!-- query
+platform: defender-xdr
+name: ASR rule audit or block on scripts and email-borne executable content
+technique: T1059
+severity: Medium
+tactics: [Execution]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 ```kql
 // All script-related ASR events, both Audit and Block. Audit is included deliberately:
 // during the rollout phase the rules are set to Audit and that is then the only visibility,
@@ -105,6 +116,17 @@ DeviceEvents
 
 ## KQL — Defender XDR advanced hunting (DeviceProcessEvents)
 
+<!-- query
+platform: defender-xdr
+name: Script interpreter launched by a mail client or browser from a temporary folder
+technique: T1059
+severity: Medium
+tactics: [Execution]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // The gap ASR does not report: a script interpreter starting from the mail client
 // or the browser. This is the execution of the .html, .js or .vbs attachment from
@@ -131,6 +153,17 @@ DeviceProcessEvents
 
 ## KQL — Microsoft Sentinel (DeviceEvents)
 
+<!-- query
+platform: sentinel
+name: ASR rule triggered on script or email-borne executable content
+technique: T1059
+severity: Medium
+tactics: [Execution]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Same detection, Sentinel variants of the column names: TimeGenerated instead
 // of Timestamp, and AdditionalFields is dynamic here, so dot notation instead

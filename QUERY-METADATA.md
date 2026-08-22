@@ -28,7 +28,7 @@ wordt de naam van de regel in de Azure-portal, en die is niet vertaald.
 
 | Veld | Waarden | Toelichting |
 |---|---|---|
-| `platform` | `sentinel` \| `defender-xdr` | Bepaalt waar de query thuishoort. Alleen `sentinel` kan een scheduled analytics rule worden. |
+| `platform` | `sentinel` \| `defender-xdr` \| `both` | Bepaalt waar de query thuishoort. `both` is voor tabellen die in Sentinel beschikbaar zijn via de Microsoft Defender XDR-connector, zoals `EmailEvents` en `UrlClickEvents`: die draaien in advanced hunting én als Sentinel-regel. Alleen `sentinel` en `both` kunnen een scheduled analytics rule worden. |
 | `name` | vrije tekst, Engels | Wordt de regelnaam. Beschrijf het gedrag, niet de techniek: "Inbox rule with a forward or redirect action", niet "T1114.003 detection". |
 | `technique` | `T####[.###]` | De ATT&CK-techniek van het bestand waarin het blok staat. |
 | `severity` | `Informational` \| `Low` \| `Medium` \| `High` | Wat de regel zou moeten hebben — niet wat Microsoft eraan geeft. Dat is het hele punt van deze repo. |
@@ -36,7 +36,7 @@ wordt de naam van de regel in de Azure-portal, en die is niet vertaald.
 | `interval` | ISO 8601 duration | Hoe vaak de regel draait, bijvoorbeeld `PT1H` of `P1D`. Kies iets dat past bij de latency van de databron; auditlogs zijn niet realtime. |
 | `lookback` | ISO 8601 duration | Het venster waarover de query kijkt. Moet minstens gelijk zijn aan `interval`, meestal ruimer. |
 | `parameters` | lijst of `[]` | Namen van `let`-variabelen die de gebruiker moet invullen vóór gebruik, zoals `ownDomains`. Worden parameters in een ARM-template. |
-| `deployable` | `true` \| `false` | `false` voor verkennende of diagnostische queries die geen alertregel horen te worden: inventarisaties, "vuurt het alert eigenlijk?"-checks, en alles op `defender-xdr`. |
+| `deployable` | `true` \| `false` | `false` voor verkennende of diagnostische queries die geen alertregel horen te worden: inventarisaties, "vuurt het alert eigenlijk?"-checks, losse filterfragmenten die niet zelfstandig draaien, en alles op `defender-xdr`. |
 
 ## Waarom `deployable` bestaat
 

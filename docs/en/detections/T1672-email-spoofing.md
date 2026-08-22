@@ -69,6 +69,18 @@ message trace in the Defender portal remains.
 
 ## KQL — Direct Send abuse (EmailEvents, both platforms)
 
+<!-- query
+platform: both
+name: Inbound mail from your own domain that did not arrive through a connector (Direct Send)
+technique: T1672
+severity: Medium
+tactics: [ResourceDevelopment]
+interval: PT1H
+lookback: P1D
+parameters: [ownDomains]
+deployable: true
+-->
+
 ```kql
 // Inbound message carrying one of your own domains as sender that did NOT
 // arrive via a connector. That is precisely the signature of Direct Send:
@@ -92,12 +104,36 @@ If you deliberately still have Direct Send enabled for printers or a line-of-bus
 application, exclude those sources by IP and monitor the volume — the advisory
 asks for that explicitly:
 
+<!-- query
+platform: both
+name: Direct Send filter excluding known printer and line-of-business IP addresses
+technique: T1672
+severity: Medium
+tactics: [ResourceDevelopment]
+interval: PT1H
+lookback: P1D
+parameters: [allowedIPs]
+deployable: true
+-->
+
 ```kql
 let allowedIPs = dynamic(["203.0.113.10", "203.0.113.11"]);   // <-- adjust
 | where SenderIPv4 !in (allowedIPs)
 ```
 
 And to spot anomalous volume from those trusted addresses:
+
+<!-- query
+platform: both
+name: Message volume from the IP addresses allowed to use Direct Send
+technique: T1672
+severity: Informational
+tactics: [ResourceDevelopment]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: true
+-->
 
 ```kql
 EmailEvents
@@ -109,6 +145,18 @@ EmailEvents
 ```
 
 ## KQL — failing email authentication on your own domain
+
+<!-- query
+platform: defender-xdr
+name: Inbound mail spoofing your own domain that fails SPF, DKIM, DMARC or composite authentication
+technique: T1672
+severity: Medium
+tactics: [ResourceDevelopment]
+interval: PT1H
+lookback: P14D
+parameters: [ownDomains]
+deployable: false
+-->
 
 ```kql
 // Messages posing as your domain where DMARC, SPF, DKIM or composite
@@ -135,6 +183,18 @@ Two helper columns that make triage faster, both documented in the
   That lets you separate "the stack saw it and acted" from "the stack did not see it".
 - `DeliveryLocation` shows whether the message landed in `Inbox/Folder` despite
   the verdict. Those are the cases that really matter.
+
+<!-- query
+platform: defender-xdr
+name: Spoofed mail split by whether the filtering stack acted and where it landed
+technique: T1672
+severity: Low
+tactics: [ResourceDevelopment]
+interval: PT1H
+lookback: P14D
+parameters: []
+deployable: false
+-->
 
 ```kql
 | extend StackCaughtIt = EmailActionPolicy == "Anti-phishing spoof"

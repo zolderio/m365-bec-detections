@@ -70,6 +70,18 @@ organisatie is de waarde **`Guest`**.
 
 ## KQL — Sentinel (OfficeActivity)
 
+<!-- query
+platform: sentinel
+name: External file sharing operations in SharePoint and OneDrive
+technique: T1567
+severity: Low
+tactics: [Exfiltration]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Delen naar buiten: anonieme links, specific-people-links en uitnodigingen.
 // AddedToSecureLink staat er expliciet bij omdat SecureLinkCreated de
@@ -90,6 +102,18 @@ OfficeActivity
 
 Aanscherpen op werkelijk extern:
 
+<!-- query
+platform: sentinel
+name: External sharing narrowed to guest recipients, anonymous links or non-allowlisted domains
+technique: T1567
+severity: Low
+tactics: [Exfiltration]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // (a) alleen ontvangers buiten de organisatie
 | where TargetUserOrGroupType =~ "Guest"
@@ -105,6 +129,18 @@ Aanscherpen op werkelijk extern:
 
 Het patroon dat er in de praktijk het meest toe doet — een gebruiker die binnen
 één uur meerdere externe deellinks maakt op financiële documenten:
+
+<!-- query
+platform: sentinel
+name: Multiple external sharing links on finance-related documents within one hour
+technique: T1567
+severity: Medium
+tactics: [Exfiltration]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 
 ```kql
 let lookback = 7d;
@@ -129,6 +165,18 @@ OfficeActivity
 Deze query detecteert geen aanvaller maar het ontbreken van de maatregel. Dat is
 bij 018 het punt: vergeten toegang ontstaat doordat niemand hem beoordeelt.
 
+<!-- query
+platform: sentinel
+name: Access review activity in the tenant (control assurance check)
+technique: T1567
+severity: Informational
+tactics: [Exfiltration]
+interval: P1D
+lookback: P90D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Access reviews die zijn aangemaakt, beëindigd of waarvan beslissingen zijn
 // toegepast. Levert dit over 90 dagen niets op, dan bestaat de maatregel op
@@ -147,6 +195,18 @@ AuditLogs
 ```
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
+
+<!-- query
+platform: defender-xdr
+name: External sharing operations seen through Defender for Cloud Apps
+technique: T1567
+severity: Low
+tactics: [Exfiltration]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 
 ```kql
 let lookback = 7d;

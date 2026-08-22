@@ -87,6 +87,17 @@ Wat wél gelogd wordt:
 
 ## KQL — Sentinel (SigninLogs): aanmelding bij de beheer-endpoints
 
+<!-- query
+platform: sentinel
+name: Sign-in to the Azure Service Management API
+technique: T1538
+severity: Low
+tactics: [Discovery]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 // Niet-beheerders die zich aanmelden bij de Azure-/Entra-beheerlaag.
 // "Windows Azure Service Management API" is de resource die Microsoft zelf
@@ -112,6 +123,17 @@ SigninLogs
 Deze query alleen is ruis. Hij wordt bruikbaar als u hem beperkt tot gebruikers
 zonder beheerrol, of tot gebruikers die dit nog niet eerder deden:
 
+<!-- query
+platform: sentinel
+name: First sign-in to the Azure Service Management API by a user in 30 days
+technique: T1538
+severity: Low
+tactics: [Discovery]
+interval: P1D
+lookback: P14D
+parameters: []
+deployable: false
+-->
 ```kql
 // Alleen gebruikers die dit in de 30 dagen ervoor niet deden.
 let known = SigninLogs
@@ -124,6 +146,17 @@ let known = SigninLogs
 
 ## KQL — Sentinel (MicrosoftGraphActivityLogs): de echte Discovery-detectie
 
+<!-- query
+platform: sentinel
+name: High volume of directory read requests to Microsoft Graph
+technique: T1538
+severity: Low
+tactics: [Discovery]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Enumeratie van gebruikers, groepen en rollen via Microsoft Graph.
 // Dit is waar T1538 in een moderne tenant daadwerkelijk plaatsvindt: niet in
@@ -158,6 +191,17 @@ het interessante geval.
 
 ## KQL — Defender XDR advanced hunting (GraphAPIAuditEvents)
 
+<!-- query
+platform: defender-xdr
+name: Directory enumeration through Microsoft Graph API audit events
+technique: T1538
+severity: Low
+tactics: [Discovery]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 let lookback = 7d;
 let threshold = 200;
@@ -181,6 +225,17 @@ Het advies vraagt hier expliciet om: *"Monitor regelmatig op wijzigingen in de
 toegangsinstellingen van het beheerportaal om te voorkomen dat deze beperking
 onbedoeld wordt opgeheven (configuratiedrift)."*
 
+<!-- query
+platform: sentinel
+name: Change to the tenant authorization policy or company settings
+technique: T1538
+severity: Medium
+tactics: [DefenseEvasion]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Wijziging aan het autorisatiebeleid of de tenant-brede instellingen.
 // De schakelaar "Restrict access to Microsoft Entra administration portal"

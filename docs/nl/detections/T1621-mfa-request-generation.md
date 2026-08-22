@@ -76,6 +76,18 @@ in een kort venster, vanaf een IP dat de gebruiker niet kent.
 
 ## KQL — Sentinel (SigninLogs)
 
+<!-- query
+platform: sentinel
+name: Burst of denied or timed-out MFA prompts on a single account
+technique: T1621
+severity: Medium
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
+
 ```kql
 // MFA-fatigue: een reeks mislukte MFA-uitdagingen op hetzelfde account binnen
 // een kort window. Het wachtwoord klopt al (anders was de fout 50126 geweest
@@ -99,6 +111,18 @@ SigninLogs
 ```
 
 ### De variant die er echt toe doet: fatigue gevolgd door succes
+
+<!-- query
+platform: sentinel
+name: Successful sign-in from the same IP right after a burst of denied MFA prompts
+technique: T1621
+severity: High
+tactics: [CredentialAccess, InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 
 ```kql
 // Een reeks geweigerde MFA-prompts en daarna een geslaagde aanmelding vanaf
@@ -130,6 +154,18 @@ Staat *Report suspicious activity* aan, dan schrijft Entra het resultaatdetail
 **MFA denied** in `AuthenticationDetails`. Dat is één stringkolom met de
 uitkomst van elke authenticatiestap, dus een `has` is het juiste filter.
 
+<!-- query
+platform: sentinel
+name: Sign-in where the user rejected the MFA prompt as suspicious
+technique: T1621
+severity: Medium
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
+
 ```kql
 SigninLogs
 | where TimeGenerated > ago(7d)
@@ -142,6 +178,18 @@ SigninLogs
 
 En de risicodetectie zelf, als je P2 hebt:
 
+<!-- query
+platform: sentinel
+name: Entra ID Protection risk detections for suspicious or user-reported MFA activity
+technique: T1621
+severity: Medium
+tactics: [CredentialAccess]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
+
 ```kql
 AADUserRiskEvents
 | where TimeGenerated > ago(30d)
@@ -152,6 +200,18 @@ AADUserRiskEvents
 ```
 
 ## KQL — Defender XDR advanced hunting (EntraIdSignInEvents)
+
+<!-- query
+platform: defender-xdr
+name: Burst of denied MFA prompts on one account in Defender XDR sign-in events
+technique: T1621
+severity: Medium
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // Zelfde logica. ErrorCode is hier een int in plaats van een string.

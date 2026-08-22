@@ -70,6 +70,18 @@ The same table and the same column names in both platforms; the query does not
 need to differ per platform. Only `Timestamp` is also called `TimeGenerated` in
 Sentinel.
 
+<!-- query
+platform: sentinel
+name: First-contact inbound mail with no attachment and no URL
+technique: T1598
+severity: Low
+tactics: [Reconnaissance]
+interval: P1D
+lookback: P30D
+parameters: [ownDomains]
+deployable: false
+-->
+
 ```kql
 // First contact with an external sender, without a URL and without an attachment.
 // That combination is unusual for ordinary business mail and typical of a
@@ -98,6 +110,18 @@ EmailEvents
 In a normal tenant the query above returns too much. BEC reconnaissance targets
 finance, executives and administrators; scope the rule to them.
 
+<!-- query
+platform: sentinel
+name: First-contact inbound mail scoped to finance and executive mailboxes
+technique: T1598
+severity: Medium
+tactics: [Reconnaissance]
+interval: P1D
+lookback: P30D
+parameters: [targets]
+deployable: false
+-->
+
 ```kql
 let targets = dynamic([
     "accountspayable@yourdomain.example", "finance@yourdomain.example",
@@ -110,6 +134,18 @@ let targets = dynamic([
 
 A second, much sharper variant: first contact from a domain that contains your
 own brand name but is not yours (typosquat, `-bv` variant, different TLD).
+
+<!-- query
+platform: sentinel
+name: Inbound mail from a lookalike domain containing the company brand name
+technique: T1598
+severity: Medium
+tactics: [Reconnaissance]
+interval: P1D
+lookback: P14D
+parameters: [brand, ownDomains]
+deployable: true
+-->
 
 ```kql
 let brand = "yourbrand";                  // <-- adjust, without TLD

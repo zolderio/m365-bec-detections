@@ -69,6 +69,17 @@ The query below is the session theft hunting query published by Microsoft,
 ported from `AADSignInEventsBeta` to its successor `EntraIdSignInEvents`. The
 column names are the same in both tables.
 
+<!-- query
+platform: defender-xdr
+name: One sign-in session used from two different countries
+technique: T1539
+severity: High
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // A session starts with a successful interactive browser sign-in to the
 // OfficeHome app; the country at that moment is the "real" location. If the
@@ -97,6 +108,17 @@ EntraIdSignInEvents
 This too is Microsoft's own query, taken over unchanged. It links the Entra
 alert `Anomalous Token` to the mailbox action that follows it in a BEC scenario.
 
+<!-- query
+platform: defender-xdr
+name: Inbox rule created inside a session flagged as an anomalous token
+technique: T1539
+severity: High
+tactics: [CredentialAccess, DefenseEvasion]
+interval: P1D
+lookback: P21D
+parameters: []
+deployable: false
+-->
 ```kql
 // Look for tokens flagged by the Entra alert "Anomalous Token"
 let suspiciousSessionIds = materialize(
@@ -121,6 +143,17 @@ unique base64 encoded request identifier used to track tokens issued by Azure AD
 as they are redeemed at resource providers"*. For token replay that is a
 sharper anchor than the session.
 
+<!-- query
+platform: sentinel
+name: One token identifier redeemed from multiple countries
+technique: T1539
+severity: High
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // One token being redeemed at resource providers from multiple IP addresses
 // or from multiple countries. In a normal session that happens from one
@@ -145,6 +178,17 @@ union SigninLogs, AADNonInteractiveUserSignInLogs
 
 And the session variant, which stays closer to the XDR query:
 
+<!-- query
+platform: sentinel
+name: One sign-in session used from multiple countries
+technique: T1539
+severity: High
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 let lookback = 1d;
 SigninLogs

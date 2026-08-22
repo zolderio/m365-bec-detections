@@ -77,6 +77,17 @@ not enabled, the query below returns nothing by definition.
 
 ## KQL — Sentinel (OfficeActivity)
 
+<!-- query
+platform: sentinel
+name: Search queries in SharePoint, OneDrive and Exchange including the search terms
+technique: T1530
+severity: Informational
+tactics: [Collection]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 // Search queries in SharePoint/OneDrive and Exchange side by side, including
 // the search terms. Requires SearchQueryInitiated logging to be enabled
@@ -90,6 +101,17 @@ OfficeActivity
 | order by TimeGenerated desc
 ```
 
+<!-- query
+platform: sentinel
+name: File access and download activity in SharePoint and OneDrive
+technique: T1530
+severity: Informational
+tactics: [Collection]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 // Accessing and downloading files, kept separate from the searching so that
 // you can correlate the two on user and time.
@@ -108,6 +130,17 @@ OfficeActivity
 Narrowing on finance — this is the filter that turns "a file was opened" into a
 BEC signal:
 
+<!-- query
+platform: sentinel
+name: Financial keyword filter on accessed SharePoint and OneDrive files
+technique: T1530
+severity: Low
+tactics: [Collection]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 | extend File = tolower(strcat(SourceRelativeUrl, "/", SourceFileName))
 | where File has_any ("factuur", "invoice", "iban", "betaling", "payment",
@@ -117,6 +150,17 @@ BEC signal:
 
 And the session pivot, so that you tie searching and opening together:
 
+<!-- query
+platform: sentinel
+name: Search query followed within 30 minutes by file access from the same IP address
+technique: T1530
+severity: Medium
+tactics: [Collection]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Users who both searched and opened files within 30 minutes,
 // from the same IP address.
@@ -139,6 +183,17 @@ searches
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
 
+<!-- query
+platform: defender-xdr
+name: File access and search in SharePoint and OneDrive with uncommon-for-user enrichment
+technique: T1530
+severity: Medium
+tactics: [Collection]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 let lookback = 7d;
 CloudAppEvents

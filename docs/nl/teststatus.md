@@ -11,6 +11,13 @@ Elke query heeft één van deze statussen:
 Doel vóór publicatie: elke query minimaal `syntax-ok`, en de queries bij de
 maatregelen met prioriteit Hoog op `bevestigd`.
 
+De repo telt **123 queryblokken**. Elk blok heeft machine-leesbare metadata —
+zie [QUERY-METADATA](https://github.com/zolderio/m365-bec-detections/blob/main/QUERY-METADATA.md).
+Daarvan zijn er **56 gemarkeerd als `deployable`**: zelfstandige queries die als
+scheduled analytics rule zinvol zijn. De overige 67 zijn advanced-hunting-queries,
+losse filterfragmenten of eenmalige inventarisaties, en horen niet als regel in
+een tenant.
+
 | Techniek | Sentinel-query | XDR-query | Getest tegen | Datum |
 |---|---|---|---|---|
 | T1059 | ongetest | ongetest | — | — |

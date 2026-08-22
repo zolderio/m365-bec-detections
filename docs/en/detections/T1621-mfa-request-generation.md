@@ -76,6 +76,18 @@ account in a short window, from an IP the user does not know.
 
 ## KQL — Sentinel (SigninLogs)
 
+<!-- query
+platform: sentinel
+name: Burst of denied or timed-out MFA prompts on a single account
+technique: T1621
+severity: Medium
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
+
 ```kql
 // MFA fatigue: a series of failed MFA challenges on the same account within
 // a short window. The password is already correct (otherwise the error would have
@@ -99,6 +111,18 @@ SigninLogs
 ```
 
 ### The variant that really matters: fatigue followed by success
+
+<!-- query
+platform: sentinel
+name: Successful sign-in from the same IP right after a burst of denied MFA prompts
+technique: T1621
+severity: High
+tactics: [CredentialAccess, InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 
 ```kql
 // A series of denied MFA prompts and then a successful sign-in from the same
@@ -131,6 +155,18 @@ If *Report suspicious activity* is enabled, Entra writes the result detail
 holding the outcome of every authentication step, so a `has` is the right
 filter.
 
+<!-- query
+platform: sentinel
+name: Sign-in where the user rejected the MFA prompt as suspicious
+technique: T1621
+severity: Medium
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
+
 ```kql
 SigninLogs
 | where TimeGenerated > ago(7d)
@@ -143,6 +179,18 @@ SigninLogs
 
 And the risk detection itself, if you have P2:
 
+<!-- query
+platform: sentinel
+name: Entra ID Protection risk detections for suspicious or user-reported MFA activity
+technique: T1621
+severity: Medium
+tactics: [CredentialAccess]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
+
 ```kql
 AADUserRiskEvents
 | where TimeGenerated > ago(30d)
@@ -153,6 +201,18 @@ AADUserRiskEvents
 ```
 
 ## KQL — Defender XDR advanced hunting (EntraIdSignInEvents)
+
+<!-- query
+platform: defender-xdr
+name: Burst of denied MFA prompts on one account in Defender XDR sign-in events
+technique: T1621
+severity: Medium
+tactics: [CredentialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // Same logic. ErrorCode is an int here instead of a string.

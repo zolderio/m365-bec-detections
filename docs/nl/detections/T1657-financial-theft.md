@@ -94,6 +94,18 @@ Bron: https://learn.microsoft.com/en-us/defender-xdr/configure-attack-disruption
 
 ## KQL — Sentinel (SecurityAlert): breng het disruptie-incident naar buiten
 
+<!-- query
+platform: sentinel
+name: Attack disruption and BEC-related alerts from the Defender stack
+technique: T1657
+severity: High
+tactics: [Impact]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
+
 ```kql
 // Attack-disruption-incidenten en aanverwante alerts uit de Defender-stack.
 // Microsoft voegt via de API de string "(attack disruption)" toe aan de titel
@@ -112,6 +124,18 @@ SecurityAlert
 ```
 
 ## KQL — Defender XDR advanced hunting (AlertInfo / AlertEvidence)
+
+<!-- query
+platform: defender-xdr
+name: Financial fraud and impersonation alerts with the accounts involved
+technique: T1657
+severity: High
+tactics: [Impact]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // Alerts die aan financiële diefstal of impersonatie hangen, met de betrokken
@@ -139,6 +163,18 @@ Dit detecteert de diefstal niet. Het detecteert de combinatie die er in bijna
 elk BEC-dossier aan voorafgaat: een account dat zowel de inbox manipuleert als
 naar buiten begint te mailen. Behandel dit als hunting, niet als alert.
 
+<!-- query
+platform: sentinel
+name: Account that changed an inbox rule and sent mail or granted mailbox permissions within 24 hours
+technique: T1657
+severity: Medium
+tactics: [Impact]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Sentinel — accounts die binnen 24 uur zowel een inboxregel aanmaakten of
 // wijzigden, als mail verstuurden of mailboxrechten weggaven.
@@ -160,6 +196,18 @@ rules
         by UserId, bin(RuleTime, 1d)
 | order by Count desc
 ```
+
+<!-- query
+platform: defender-xdr
+name: Payment-related outbound mail from an account with an open alert
+technique: T1657
+severity: Medium
+tactics: [Impact]
+interval: PT1H
+lookback: P7D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // Defender XDR — uitgaande mail met betaalgerelateerde onderwerpen vanuit een

@@ -89,6 +89,17 @@ that table requires Safe Links and therefore MDO.
 
 ## KQL — Defender XDR advanced hunting (EmailAttachmentInfo + EmailEvents)
 
+<!-- query
+platform: defender-xdr
+name: Script or HTML attachment delivered to the inbox
+technique: T1204
+severity: Medium
+tactics: [Execution]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Attachments with a script or HTML extension that actually landed in a
 // mailbox. The filter logic deliberately uses DeliveryLocation and not
@@ -126,6 +137,17 @@ both variants are in the query. Check with
 
 ## KQL — Microsoft Sentinel (EmailAttachmentInfo + EmailEvents)
 
+<!-- query
+platform: sentinel
+name: Script or HTML attachment delivered without a transport rule match
+technique: T1204
+severity: Medium
+tactics: [Execution]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // The same detection in Sentinel. Difference with Defender XDR: the time
 // column is called TimeGenerated. The column names FileExtension,
@@ -160,6 +182,17 @@ An `.html` attachment from a known supplier is usually an invoice report. The
 same attachment from a sender you have never exchanged mail with is not.
 `EmailEvents` has a column for that:
 
+<!-- query
+platform: defender-xdr
+name: Risky attachment from a first-contact sender with failing authentication
+technique: T1204
+severity: Medium
+tactics: [Execution, InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 | where IsFirstContact == 1        // in Sentinel this is a bool: == true
 | where AuthenticationDetails has_any ("fail", "softpass", "none")

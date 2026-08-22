@@ -58,6 +58,17 @@ Source: https://learn.microsoft.com/en-us/defender-cloud-apps/anomaly-detection-
 
 ## KQL — Sentinel (OfficeActivity): sharing to the outside
 
+<!-- query
+platform: sentinel
+name: External sharing of SharePoint or OneDrive files
+technique: T1537
+severity: Low
+tactics: [Exfiltration]
+interval: PT1H
+lookback: P1D
+parameters: [ownDomains]
+deployable: true
+-->
 ```kql
 // Sharing operations in SharePoint and OneDrive where the recipient is outside
 // the organisation. The operation names are taken literally from Microsoft's
@@ -96,6 +107,17 @@ it suspicious in BEC is the combination: a user who shares several files
 externally in a short period to a domain the organisation has never shared with
 before, or who first downloads in bulk and then shares.
 
+<!-- query
+platform: sentinel
+name: Burst of external shares to a domain not seen in the past 30 days
+technique: T1537
+severity: Medium
+tactics: [Exfiltration]
+interval: P1D
+lookback: P14D
+parameters: [ownDomains]
+deployable: true
+-->
 ```kql
 // Burst: many external sharing actions by one user within an hour, to a
 // domain that did not appear in the preceding 30 days.
@@ -129,6 +151,17 @@ OfficeActivity
 
 And the bulk download that often precedes it:
 
+<!-- query
+platform: sentinel
+name: Bulk file download by a single account within an hour
+technique: T1537
+severity: Medium
+tactics: [Exfiltration]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Unusually many downloaded files by a single account within an hour.
 let lookback = 7d;
@@ -147,6 +180,17 @@ OfficeActivity
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
 
+<!-- query
+platform: defender-xdr
+name: Anonymous or guest sharing links created in SharePoint and OneDrive
+technique: T1537
+severity: Medium
+tactics: [Exfiltration]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 let lookback = 7d;
 let ShareActions = dynamic(["AnonymousLinkCreated", "SecureLinkCreated",

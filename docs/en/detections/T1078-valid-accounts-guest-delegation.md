@@ -55,6 +55,17 @@ Without measure 012 (UAL enabled) the `OfficeActivity` queries do nothing.
 
 ## KQL — Sentinel (AuditLogs, SigninLogs, OfficeActivity)
 
+<!-- query
+platform: sentinel
+name: Guest account invited or invitation redeemed
+technique: T1078
+severity: Low
+tactics: [InitialAccess, Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // 1. Guest accounts being invited and redeemed. The documented
 //    Entra audit activities sit under the UserManagement category.
@@ -72,6 +83,17 @@ AuditLogs
 | order by TimeGenerated desc
 ```
 
+<!-- query
+platform: sentinel
+name: Dormant guest account signs in again
+technique: T1078
+severity: Medium
+tactics: [InitialAccess, Persistence]
+interval: P1D
+lookback: P60D
+parameters: []
+deployable: true
+-->
 ```kql
 // 2. Guest account signing in again after a longer silence. That is the pattern of
 //    'forgotten access' from measure 018 and the pattern of a hijacked
@@ -95,6 +117,17 @@ SigninLogs
 | order by TimeGenerated desc
 ```
 
+<!-- query
+platform: sentinel
+name: Guest user activity in SharePoint or OneDrive
+technique: T1078
+severity: Informational
+tactics: [Collection]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 // 3. What the guest then does in SharePoint/OneDrive. For sharing actions
 //    the recipient is in TargetUserOrGroupName and TargetUserOrGroupType is 'Guest';
@@ -110,6 +143,17 @@ OfficeActivity
 | order by TimeGenerated desc
 ```
 
+<!-- query
+platform: sentinel
+name: Mailbox delegation or folder permission granted
+technique: T1078
+severity: Medium
+tactics: [Collection, Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // 4. Delegation on the mailbox — same logic, different workload.
 //    An extended variant with parameter extraction is in T1114.002.
@@ -124,6 +168,17 @@ OfficeActivity
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents, EntraIdSignInEvents)
 
+<!-- query
+platform: defender-xdr
+name: External user activity summarised across connected cloud apps
+technique: T1078
+severity: Informational
+tactics: [Collection]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 // Activity of external users across all connected workloads.
 // IsExternalUser is a documented column of CloudAppEvents.
@@ -141,6 +196,17 @@ CloudAppEvents
 | order by Actions desc
 ```
 
+<!-- query
+platform: defender-xdr
+name: Guest account signs in to a resource it never used before
+technique: T1078
+severity: Medium
+tactics: [InitialAccess, Collection]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 ```kql
 // Guest accounts accessing a resource they have not accessed before.
 // EntraIdSignInEvents requires Entra ID P2; until 19 Oct 2026 this table is
@@ -168,6 +234,17 @@ Measure 017 calls for an allowlist of trusted domains. As long as one exists,
 the interesting case is a guest from outside that list. In queries 1 and 2,
 replace the last filter line:
 
+<!-- query
+platform: sentinel
+name: Guest activity filtered to domains outside the trusted partner list
+technique: T1078
+severity: Low
+tactics: [InitialAccess]
+interval: PT1H
+lookback: P1D
+parameters: [trustedPartners]
+deployable: false
+-->
 ```kql
 | extend GuestDomain = tolower(tostring(split(replace_string(Guest, "_", "@"), "@")[-1]))
 | where GuestDomain !in~ ("trustedpartner.example", "trustedcustomer.example")   // <-- adjust

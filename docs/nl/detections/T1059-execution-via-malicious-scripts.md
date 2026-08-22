@@ -78,6 +78,17 @@ endpointtelemetrie en geen M365-audittelemetrie.
 
 ## KQL — Defender XDR advanced hunting (DeviceEvents)
 
+<!-- query
+platform: defender-xdr
+name: ASR rule audit or block on scripts and email-borne executable content
+technique: T1059
+severity: Medium
+tactics: [Execution]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 ```kql
 // Alle scriptgerelateerde ASR-events, Audit én Block. Audit staat er bewust bij:
 // in de uitrolfase staan de regels op Audit en dan is dit de enige zichtbaarheid,
@@ -102,6 +113,17 @@ DeviceEvents
 
 ## KQL — Defender XDR advanced hunting (DeviceProcessEvents)
 
+<!-- query
+platform: defender-xdr
+name: Script interpreter launched by a mail client or browser from a temporary folder
+technique: T1059
+severity: Medium
+tactics: [Execution]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Het gat dat ASR niet meldt: een scriptinterpreter die start vanuit de mailclient
 // of de browser. Dit is de uitvoering van de .html-, .js- of .vbs-bijlage uit
@@ -128,6 +150,17 @@ DeviceProcessEvents
 
 ## KQL — Microsoft Sentinel (DeviceEvents)
 
+<!-- query
+platform: sentinel
+name: ASR rule triggered on script or email-borne executable content
+technique: T1059
+severity: Medium
+tactics: [Execution]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Zelfde detectie, Sentinel-varianten van de kolomnamen: TimeGenerated in plaats
 // van Timestamp, en AdditionalFields is hier dynamic, dus puntnotatie in plaats

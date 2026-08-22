@@ -91,6 +91,18 @@ waarden `Anti-phishing domain impersonation`, `Anti-phishing user impersonation`
 `Anti-phishing spoof` en `Anti-phishing graph impersonation`. Dat zijn de enige
 plekken waar "impersonatie" als zodanig in de telemetrie staat.
 
+<!-- query
+platform: defender-xdr
+name: Impersonation-flagged mail that was still delivered to the inbox or junk folder
+technique: T1656
+severity: Medium
+tactics: [Impact]
+interval: PT1H
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Berichten die door impersonatiebescherming zijn herkend maar tóch in een
 // inbox of map zijn afgeleverd. Dat is het gat: gedetecteerd maar niet
@@ -110,6 +122,18 @@ EmailEvents
           AuthenticationDetails, IsFirstContact, ExchangeTransportRule
 | order by Timestamp desc
 ```
+
+<!-- query
+platform: defender-xdr
+name: First-contact external mail with a payment-related subject
+technique: T1656
+severity: Low
+tactics: [Impact]
+interval: PT1H
+lookback: P7D
+parameters: [ownDomains]
+deployable: false
+-->
 
 ```kql
 // Eerste contact vanaf een domein dat sterk op een eigen of leveranciersdomein
@@ -138,6 +162,18 @@ EmailEvents
 > expliciete lijst van maximaal 50 te beschermen domeinen. Verwacht ruis en zet
 > hem in als hunting-query, niet als analytic rule.
 
+<!-- query
+platform: defender-xdr
+name: External sender using the display name of an internal employee
+technique: T1656
+severity: Medium
+tactics: [Impact]
+interval: PT1H
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // De afzenderkant: display-naamimpersonatie waarbij de weergegeven naam
 // overeenkomt met een eigen medewerker maar het adres extern is.
@@ -158,6 +194,18 @@ EmailEvents
 ```
 
 ## KQL — Defender XDR advanced hunting (AlertInfo / AlertEvidence)
+
+<!-- query
+platform: defender-xdr
+name: Defender alerts related to impersonation and business email compromise
+technique: T1656
+severity: Medium
+tactics: [Impact]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // Alle alerts uit de Defender-stack die aan T1656 of aan phishing/BEC hangen,
@@ -180,6 +228,18 @@ AlertInfo
 ```
 
 ## KQL — Sentinel (SecurityAlert)
+
+<!-- query
+platform: sentinel
+name: Defender impersonation and override alerts raised to a workable severity
+technique: T1656
+severity: Medium
+tactics: [Impact]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 
 ```kql
 // Zorg dat de Defender-alerts in Sentinel op een niveau binnenkomen waar iemand

@@ -95,6 +95,18 @@ Source: https://learn.microsoft.com/en-us/defender-xdr/configure-attack-disrupti
 
 ## KQL — Sentinel (SecurityAlert): surface the disruption incident
 
+<!-- query
+platform: sentinel
+name: Attack disruption and BEC-related alerts from the Defender stack
+technique: T1657
+severity: High
+tactics: [Impact]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
+
 ```kql
 // Attack disruption incidents and related alerts from the Defender stack.
 // Via the API, Microsoft adds the string "(attack disruption)" to the title
@@ -113,6 +125,18 @@ SecurityAlert
 ```
 
 ## KQL — Defender XDR advanced hunting (AlertInfo / AlertEvidence)
+
+<!-- query
+platform: defender-xdr
+name: Financial fraud and impersonation alerts with the accounts involved
+technique: T1657
+severity: High
+tactics: [Impact]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // Alerts tied to financial theft or impersonation, with the accounts
@@ -140,6 +164,18 @@ This does not detect the theft. It detects the combination that precedes it in
 almost every BEC case file: an account that both manipulates the inbox and
 starts mailing outwards. Treat this as hunting, not as an alert.
 
+<!-- query
+platform: sentinel
+name: Account that changed an inbox rule and sent mail or granted mailbox permissions within 24 hours
+technique: T1657
+severity: Medium
+tactics: [Impact]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Sentinel - accounts that within 24 hours both created or modified an
 // inbox rule and sent mail or granted mailbox permissions.
@@ -161,6 +197,18 @@ rules
         by UserId, bin(RuleTime, 1d)
 | order by Count desc
 ```
+
+<!-- query
+platform: defender-xdr
+name: Payment-related outbound mail from an account with an open alert
+technique: T1657
+severity: Medium
+tactics: [Impact]
+interval: PT1H
+lookback: P7D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // Defender XDR - outbound mail with payment-related subjects from an

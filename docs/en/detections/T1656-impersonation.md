@@ -92,6 +92,18 @@ The key is `EmailActionPolicy`. Microsoft documents values for it including
 `Anti-phishing spoof` and `Anti-phishing graph impersonation`. Those are the only
 places where "impersonation" as such appears in the telemetry.
 
+<!-- query
+platform: defender-xdr
+name: Impersonation-flagged mail that was still delivered to the inbox or junk folder
+technique: T1656
+severity: Medium
+tactics: [Impact]
+interval: PT1H
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Messages that were recognised by impersonation protection but were still
 // delivered to an inbox or folder. That is the gap: detected but not
@@ -111,6 +123,18 @@ EmailEvents
           AuthenticationDetails, IsFirstContact, ExchangeTransportRule
 | order by Timestamp desc
 ```
+
+<!-- query
+platform: defender-xdr
+name: First-contact external mail with a payment-related subject
+technique: T1656
+severity: Low
+tactics: [Impact]
+interval: PT1H
+lookback: P7D
+parameters: [ownDomains]
+deployable: false
+-->
 
 ```kql
 // First contact from a domain that closely resembles one of your own or a
@@ -139,6 +163,18 @@ EmailEvents
 > explicit list of at most 50 protected domains. Expect noise and deploy it as a
 > hunting query, not as an analytic rule.
 
+<!-- query
+platform: defender-xdr
+name: External sender using the display name of an internal employee
+technique: T1656
+severity: Medium
+tactics: [Impact]
+interval: PT1H
+lookback: P7D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // The sender side: display name impersonation where the displayed name
 // matches one of your own employees but the address is external.
@@ -159,6 +195,18 @@ EmailEvents
 ```
 
 ## KQL — Defender XDR advanced hunting (AlertInfo / AlertEvidence)
+
+<!-- query
+platform: defender-xdr
+name: Defender alerts related to impersonation and business email compromise
+technique: T1656
+severity: Medium
+tactics: [Impact]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // All alerts from the Defender stack tied to T1656 or to phishing/BEC,
@@ -181,6 +229,18 @@ AlertInfo
 ```
 
 ## KQL — Sentinel (SecurityAlert)
+
+<!-- query
+platform: sentinel
+name: Defender impersonation and override alerts raised to a workable severity
+technique: T1656
+severity: Medium
+tactics: [Impact]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 
 ```kql
 // Make sure the Defender alerts arrive in Sentinel at a level where someone

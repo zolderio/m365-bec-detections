@@ -100,6 +100,17 @@ u aangewezen op de drie alert policies hierboven en op de inboxregels uit
 Deze query draait ongewijzigd in beide omgevingen; `EmailEvents` heeft in
 Sentinel dezelfde kolomnamen als in advanced hunting.
 
+<!-- query
+platform: sentinel
+name: Intra-org mail with a phishing or malware verdict
+technique: T1534
+severity: High
+tactics: [LateralMovement]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Interne mail die door de filterstack als phishing of malware is bestempeld.
 // EmailDirection "Intra-org" is de kern: dit is mail van een eigen account naar
@@ -134,6 +145,17 @@ rekeningnummer te wijzigen. Daar is geen filterverdict voor. Wat u wél kunt zie
 is het patroon: één interne afzender die in korte tijd hetzelfde onderwerp naar
 ongebruikelijk veel interne ontvangers stuurt.
 
+<!-- query
+platform: defender-xdr
+name: Internal sender with an unusual fan-out on a single subject
+technique: T1534
+severity: Medium
+tactics: [LateralMovement]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Interne afzender met een ongebruikelijke fan-out op een enkel onderwerp.
 // Tune Ontvangers en het window op de eigen organisatie; in een tenant met
@@ -163,6 +185,17 @@ samenvalt met een verse inboxregel uit
 
 ## KQL — Defender XDR: kliks op interne links
 
+<!-- query
+platform: defender-xdr
+name: Clicks by internal recipients on links in intra-org mail
+technique: T1534
+severity: Medium
+tactics: [LateralMovement]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Klikken door interne ontvangers op links uit intra-org mail.
 // Vereist EnableForInternalSenders $true in het Safe Links-beleid; anders is
@@ -190,6 +223,17 @@ altijd een geslaagde lateral-movement-stap.
 Zet de drie alert policies niet alleen aan maar haal ze ook binnen, zodat ze
 naast de eigen regels in dezelfde incidentenstroom staan:
 
+<!-- query
+platform: sentinel
+name: Outbound sending restriction and suspicious sending pattern alerts
+technique: T1534
+severity: Medium
+tactics: [LateralMovement]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Titels komen letterlijk overeen met de policynamen uit alert-policies.
 // De ServiceSource-waarde voor deze policies is niet geverifieerd; filter op

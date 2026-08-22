@@ -85,6 +85,17 @@ What is logged:
 
 ## KQL — Sentinel (SigninLogs): sign-in to the administration endpoints
 
+<!-- query
+platform: sentinel
+name: Sign-in to the Azure Service Management API
+technique: T1538
+severity: Low
+tactics: [Discovery]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 // Non-administrators signing in to the Azure/Entra management layer.
 // "Windows Azure Service Management API" is the resource Microsoft itself
@@ -110,6 +121,17 @@ SigninLogs
 This query on its own is noise. It becomes usable if you limit it to users
 without an administrative role, or to users who have not done this before:
 
+<!-- query
+platform: sentinel
+name: First sign-in to the Azure Service Management API by a user in 30 days
+technique: T1538
+severity: Low
+tactics: [Discovery]
+interval: P1D
+lookback: P14D
+parameters: []
+deployable: false
+-->
 ```kql
 // Only users who did not do this in the preceding 30 days.
 let known = SigninLogs
@@ -122,6 +144,17 @@ let known = SigninLogs
 
 ## KQL — Sentinel (MicrosoftGraphActivityLogs): the real Discovery detection
 
+<!-- query
+platform: sentinel
+name: High volume of directory read requests to Microsoft Graph
+technique: T1538
+severity: Low
+tactics: [Discovery]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Enumeration of users, groups and roles via Microsoft Graph.
 // This is where T1538 actually takes place in a modern tenant: not in the
@@ -156,6 +189,17 @@ interesting case.
 
 ## KQL — Defender XDR advanced hunting (GraphAPIAuditEvents)
 
+<!-- query
+platform: defender-xdr
+name: Directory enumeration through Microsoft Graph API audit events
+technique: T1538
+severity: Low
+tactics: [Discovery]
+interval: P1D
+lookback: P7D
+parameters: []
+deployable: false
+-->
 ```kql
 let lookback = 7d;
 let threshold = 200;
@@ -179,6 +223,17 @@ The advisory explicitly asks for this: *"Monitor regularly for changes to the
 access settings of the administration portal in order to prevent this
 restriction from being lifted unintentionally (configuration drift)."*
 
+<!-- query
+platform: sentinel
+name: Change to the tenant authorization policy or company settings
+technique: T1538
+severity: Medium
+tactics: [DefenseEvasion]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Change to the authorization policy or the tenant-wide settings.
 // The switch "Restrict access to Microsoft Entra administration portal"

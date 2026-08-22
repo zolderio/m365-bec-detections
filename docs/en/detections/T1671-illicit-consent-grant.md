@@ -116,6 +116,18 @@ exact string, so that both spellings are caught.
 
 ## KQL — Sentinel (AuditLogs): consent with risky scopes
 
+<!-- query
+platform: sentinel
+name: OAuth consent or permission grant covering mail or directory scopes
+technique: T1671
+severity: Medium
+tactics: [Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
+
 ```kql
 // Consent and permission grants, with the mail scopes pulled out. The scopes are
 // in modifiedProperties; exactly which property that is differs per activity,
@@ -156,6 +168,18 @@ AuditLogs
 
 Simpler and more robust if you do not trust the scope extraction:
 
+<!-- query
+platform: sentinel
+name: Consent grant filtered down to mail scopes or admin consent
+technique: T1671
+severity: Medium
+tactics: [Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
+
 ```kql
 | extend TouchesMail = Props has_any ("Mail.Read","Mail.ReadWrite","Mail.Send",
                                       "MailboxSettings","full_access_as_app","EWS.AccessAsUser.All")
@@ -163,6 +187,18 @@ Simpler and more robust if you do not trust the scope extraction:
 ```
 
 ## KQL — Sentinel: consent shortly after a sign-in from an unknown IP
+
+<!-- query
+platform: sentinel
+name: OAuth consent granted shortly after sign-in from an unfamiliar IP
+technique: T1671
+severity: High
+tactics: [Persistence]
+interval: P1D
+lookback: P14D
+parameters: []
+deployable: true
+-->
 
 ```kql
 // A consent grant is only suspicious if it comes from a session that is itself
@@ -197,6 +233,18 @@ AuditLogs
 
 ## KQL — Defender XDR advanced hunting (CloudAppEvents)
 
+<!-- query
+platform: defender-xdr
+name: OAuth consent events seen through Defender for Cloud Apps
+technique: T1671
+severity: Medium
+tactics: [Persistence]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
+
 ```kql
 // Entra consent events arrive under Application "Office 365". The full stop at
 // the end of the ActionType value is present in Microsoft's own hunting query
@@ -223,6 +271,18 @@ returns nothing while you know consent has been granted, first inspect
 `RawEventData` of a single event and adjust the indexes.
 
 ## KQL — finding app governance alerts
+
+<!-- query
+platform: defender-xdr
+name: App governance alerts about OAuth apps and consent
+technique: T1671
+severity: Medium
+tactics: [Persistence]
+interval: P1D
+lookback: P30D
+parameters: []
+deployable: false
+-->
 
 ```kql
 // If app governance is on, the alerts land in AlertInfo. Useful for establishing

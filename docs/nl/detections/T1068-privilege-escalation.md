@@ -119,6 +119,17 @@ detectieprobleem maar een loggingprobleem.
 
 ## KQL — Sentinel (AuditLogs): toewijzing aan een Entra-directoryrol
 
+<!-- query
+platform: sentinel
+name: Member added to a privileged Entra directory role
+technique: T1068
+severity: Medium
+tactics: [PrivilegeEscalation, Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // Alle roltoewijzingen, permanent en eligible. De PIM-varianten staan er bewust
 // bij: als de organisatie PIM gebruikt, is het onderscheid tussen "via PIM" en
@@ -164,6 +175,17 @@ voorbeeldevent en pas aan, of laat de extractie weg en beoordeel
 
 ## KQL — Sentinel: roltoewijzing buiten PIM om
 
+<!-- query
+platform: sentinel
+name: Privileged role assigned outside Privileged Identity Management
+technique: T1068
+severity: Medium
+tactics: [PrivilegeEscalation, Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // De Sentinel-tegenhanger van de PIM-alert "Roles are being assigned outside of
 // Privileged Identity Management". Bruikbaar in tenants die PIM gebruiken.
@@ -191,6 +213,17 @@ schrijfwijze van de PIM-waarde is **niet geverifieerd**.
 
 ## KQL — Sentinel (OfficeActivity): Exchange-rolgroepen
 
+<!-- query
+platform: sentinel
+name: Membership change in an Exchange Online admin role group
+technique: T1068
+severity: Medium
+tactics: [PrivilegeEscalation, Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: true
+-->
 ```kql
 // De Exchange-kant, waar het alert Elevation of Exchange admin privilege op zit.
 // Dit is de query die je gebruikt om te controleren of dat alert compleet is —
@@ -220,6 +253,17 @@ zodat een analist altijd de ruwe inhoud ziet.
 
 ## KQL — Defender XDR advanced hunting: vuurt het alert eigenlijk?
 
+<!-- query
+platform: defender-xdr
+name: Alerts raised for elevation of Exchange admin privilege
+technique: T1068
+severity: Informational
+tactics: [PrivilegeEscalation]
+interval: P1D
+lookback: P90D
+parameters: []
+deployable: false
+-->
 ```kql
 // Controleer of de alert policy daadwerkelijk alerts produceert en met welke
 // severity ze binnenkomen. Een policy die aan staat maar nooit vuurt, is geen
@@ -231,6 +275,17 @@ AlertInfo
 | order by Timestamp desc
 ```
 
+<!-- query
+platform: defender-xdr
+name: Role assignment changes recorded in cloud app activity
+technique: T1068
+severity: Medium
+tactics: [PrivilegeEscalation, Persistence]
+interval: PT1H
+lookback: P1D
+parameters: []
+deployable: false
+-->
 ```kql
 // Rolwijzigingen in CloudAppEvents, voor tenants die geen Entra-diagnostic
 // setting naar Log Analytics hebben. Entra-auditevents komen binnen onder
