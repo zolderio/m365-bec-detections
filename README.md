@@ -21,6 +21,25 @@ documentatie: het aanmaken van een doorstuurregel is `Informational`, en het
 starten of exporteren van een eDiscovery-zoekopdracht over alle mailboxen is
 dat ook. Zie [SEVERITY-OVERZICHT.md](SEVERITY-OVERZICHT.md).
 
+## Welke detectie moet je kiezen?
+
+Elk detectiebestand opent met een **Aanbeveling** met één van deze labels. De
+vuistregel: *dekt Defender de handeling volledig zonder E5, dan Defender; zo
+niet, dan een eigen Sentinel-rule.*
+
+| Label | Wanneer | Wat je doet |
+|---|---|---|
+| `DEFENDER-ALERT` | Er is een standaard alert policy, hij dekt de handeling volledig, en hij zit in E1/E3 zonder add-on. | Alert aanzetten, severity zo nodig ophogen, doorzetten naar de plek waar iemand kijkt. |
+| `SENTINEL-RULE` | Er is geen alert, of het alert dekt de handeling maar gedeeltelijk, of het vereist E5 / een add-on-licentie. | Eigen analytic rule op de KQL in dit bestand. |
+| `DEFENDER-ALERT + SENTINEL-RULE` | Het alert is nuttig als vangnet, maar laat een gat dat er in de praktijk toe doet. | Beide: alert aan, KQL voor het gat. |
+
+Twee dingen tellen mee in "volledig": dekt het alert álle manieren waarop de
+handeling wordt uitgevoerd (bijvoorbeeld ook vanuit de desktopclient), en is de
+standaard-severity zo dat er iemand naar kijkt. Een `Informational` alert dat
+in een dashboard verdwijnt is geen detectie. Severities van alert policies zijn
+overigens aanpasbaar zonder extra licentie; waar dat de oplossing is, staat het
+erbij.
+
 ## Structuur
 
 ```
