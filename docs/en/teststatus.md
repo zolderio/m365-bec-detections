@@ -11,6 +11,12 @@ Every query has one of these statuses:
 Goal before publication: every query at least `syntax-ok`, and the queries for
 the measures with priority High at `confirmed`.
 
+The repository contains **123 query blocks**. Each block carries machine-readable
+metadata — see [QUERY-METADATA](https://github.com/zolderio/m365-bec-detections/blob/main/QUERY-METADATA.md).
+Of those, **56 are marked `deployable`**: self-contained queries that make sense as a
+scheduled analytics rule. The remaining 67 are advanced hunting queries, standalone
+filter fragments or one-off inventories, and do not belong in a tenant as a rule.
+
 | Technique | Sentinel query | XDR query | Tested against | Date |
 |---|---|---|---|---|
 | T1059 | untested | untested | — | — |
