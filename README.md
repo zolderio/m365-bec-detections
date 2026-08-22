@@ -99,6 +99,13 @@ Cloud Apps-anomaliepolicies uitgezet die in veel detectie-inventarissen nog als
 dekking staan. Waar een severity niet publiek gedocumenteerd is, staat dat er
 zo bij — er wordt niet gegokt.
 
+## Bijdragen
+
+Verbeteringen zijn welkom, en het meest bruikbaar is een teststatus van iemand
+die een query in een echte tenant heeft gedraaid. Zie
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Licentie
 
-<!-- TODO Erik: licentiekeuze, MIT ligt voor de hand -->
+[MIT](LICENSE). Vrij te gebruiken, aan te passen en commercieel in te zetten,
+mits de copyrightvermelding meegaat.
