@@ -164,12 +164,30 @@ niet beschikbaar. Dat is precies het patroon dat in de [kernbevinding](../index.
 staat: de zichtbaarheid bestaat, maar achter een licentie die de doelgroep van
 dit advies meestal niet heeft.
 
-Zonder Plan 2 doe je dezelfde inventarisatie met een **historical message trace**
-in het Exchange admin center: 90 dagen terug, en dan filteren op berichten waarbij
-afzender en ontvanger in hetzelfde domein zitten maar er geen connector in het
-bericht-event staat. Trager en handmatiger, maar het zit in elke tenant met
-cloudmailboxen — en dat is voor de doelgroep van dit advies het verschil tussen
-wel en niet kunnen kijken.
+Zonder Plan 2 doe je dezelfde inventarisatie met een **message trace** in het
+Exchange admin center (Mail flow > Message trace > Start a trace):
+
+| Veld | Waarde |
+|---|---|
+| Senders | `*@jouwdomein.nl` — wildcards mogen, maar één per waarde |
+| Direction | `Inbound` (onder Detailed search options) |
+| Time range | tot 90 dagen |
+| Report type | **Enhanced summary report** |
+
+Het moet de *enhanced summary* zijn: alleen die CSV bevat `connector_id`,
+`original_client_ip` en `directionality`. De gewone summary heeft ze niet. Die
+rapportvorm eist ook een filter op afzender, ontvanger of message-ID — het
+wildcard-afzenderfilter hierboven voldoet daaraan.
+
+In de CSV is de regel simpel: **`connector_id` leeg en `directionality` inbound =
+Direct Send**. Groepeer daarna op `original_client_ip` en je hebt dezelfde lijst
+als de KQL hierboven.
+
+Twee beperkingen: `original_client_ip` wordt maar **10 dagen** bewaard, dus over
+een langer venster zie je wél dát het gebeurt maar niet meer waarvandaan. En het
+rapport komt als download die uren kan duren. Trager en handmatiger dan de KQL
+dus, maar het zit in elke tenant met cloudmailboxen — en dat is voor de doelgroep
+van dit advies het verschil tussen wel en niet kunnen kijken.
 
 Heb je Direct Send bewust nog aanstaan voor printers of een lijnapplicatie,
 sluit die bronnen dan uit op IP en monitor het volume — het advies vraagt daar

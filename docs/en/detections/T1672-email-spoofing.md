@@ -165,11 +165,30 @@ add-on, but without that step this query is not available. That is exactly the
 pattern in the [key finding](../index.md): the visibility exists, but behind a
 licence the audience of this advisory usually does not have.
 
-Without Plan 2 you do the same inventory with a **historical message trace** in
-the Exchange admin center: 90 days back, then filter for messages where sender and
-recipient are in the same domain but the message events show no connector. Slower
-and more manual, but it is in every tenant with cloud mailboxes — and for the
-audience of this advisory that is the difference between being able to look and not.
+Without Plan 2 you do the same inventory with a **message trace** in the Exchange
+admin center (Mail flow > Message trace > Start a trace):
+
+| Field | Value |
+|---|---|
+| Senders | `*@yourdomain.example` — wildcards allowed, one per value |
+| Direction | `Inbound` (under Detailed search options) |
+| Time range | up to 90 days |
+| Report type | **Enhanced summary report** |
+
+It has to be the *enhanced summary*: only that CSV contains `connector_id`,
+`original_client_ip` and `directionality`. The plain summary does not. That report
+type also requires a filter on sender, recipient or message ID — the wildcard
+sender filter above satisfies it.
+
+In the CSV the rule is simple: **empty `connector_id` plus inbound
+`directionality` = Direct Send**. Group by `original_client_ip` and you have the
+same list the KQL above produces.
+
+Two limits: `original_client_ip` is retained for only **10 days**, so over a longer
+window you see *that* it happens but no longer from where. And the report arrives
+as a download that can take hours. Slower and more manual than the KQL, but it is
+in every tenant with cloud mailboxes — and for the audience of this advisory that
+is the difference between being able to look and not.
 
 If you deliberately still have Direct Send enabled for printers or a line-of-business
 application, exclude those sources by IP and monitor the volume — the advisory
