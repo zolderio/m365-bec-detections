@@ -152,12 +152,24 @@ Hoe je de uitkomst leest:
   printer. Dat is misbruik, en dan is de maatregel precies waarvoor hij bedoeld is.
 - **Een lege uitkomst** is het beste antwoord: niemand gebruikt het, de knop kan om.
 
-Zonder Defender-portaal (geen `EmailEvents`, dus geen advanced hunting) doe je
-dezelfde inventarisatie met een **historical message trace** in het Exchange
-admin center: 90 dagen terug, en dan filteren op berichten waarbij afzender en
-ontvanger in hetzelfde domein zitten maar er geen connector in het bericht-event
-staat. Trager en handmatiger, maar het vraagt geen add-on — en dat is voor de
-doelgroep van dit advies het verschil tussen wel en niet kunnen kijken.
+**Let op de licentie.** `EmailEvents` en de rest van de e-mailtabellen in
+advanced hunting zitten in **Defender for Office 365 Plan 2**, en Plan 2 zit
+alleen in E5, A5 en GCC G5. Microsoft 365 Business Premium krijgt Plan 1, en
+per 1 juli 2026 geldt hetzelfde voor Office 365 E3 en Microsoft 365 E3. In de
+featuretabel van de service description staat "Integration with Microsoft
+Defender XDR" voor Plan 1 op **No**; Plan 1 heeft Real-time detections, Plan 2
+heeft Threat Explorer en advanced hunting. Business Premium-klanten kunnen Plan 2
+los bijkopen via de Defender Suite-add-on, maar zonder die stap is deze query
+niet beschikbaar. Dat is precies het patroon dat in de [kernbevinding](../index.md)
+staat: de zichtbaarheid bestaat, maar achter een licentie die de doelgroep van
+dit advies meestal niet heeft.
+
+Zonder Plan 2 doe je dezelfde inventarisatie met een **historical message trace**
+in het Exchange admin center: 90 dagen terug, en dan filteren op berichten waarbij
+afzender en ontvanger in hetzelfde domein zitten maar er geen connector in het
+bericht-event staat. Trager en handmatiger, maar het zit in elke tenant met
+cloudmailboxen — en dat is voor de doelgroep van dit advies het verschil tussen
+wel en niet kunnen kijken.
 
 Heb je Direct Send bewust nog aanstaan voor printers of een lijnapplicatie,
 sluit die bronnen dan uit op IP en monitor het volume — het advies vraagt daar

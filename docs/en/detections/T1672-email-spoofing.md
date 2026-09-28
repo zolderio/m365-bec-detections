@@ -154,12 +154,22 @@ How to read the result:
   printer. That is abuse, and the measure is exactly what it is for.
 - **An empty result** is the best answer: nobody uses it, the switch can go.
 
-Without the Defender portal (no `EmailEvents`, so no advanced hunting) you do the
-same inventory with a **historical message trace** in the Exchange admin center:
-90 days back, then filter for messages where sender and recipient are in the same
-domain but the message events show no connector. Slower and more manual, but it
-needs no add-on — and for the audience of this advisory that is the difference
-between being able to look and not.
+**Mind the licence.** `EmailEvents` and the other email tables in advanced
+hunting require **Defender for Office 365 Plan 2**, and Plan 2 ships only with
+E5, A5 and GCC G5. Microsoft 365 Business Premium gets Plan 1, and from
+1 July 2026 so do Office 365 E3 and Microsoft 365 E3. In the service description
+feature table, "Integration with Microsoft Defender XDR" is **No** for Plan 1;
+Plan 1 has Real-time detections, Plan 2 has Threat Explorer and advanced hunting.
+Business Premium customers can buy Plan 2 separately through the Defender Suite
+add-on, but without that step this query is not available. That is exactly the
+pattern in the [key finding](../index.md): the visibility exists, but behind a
+licence the audience of this advisory usually does not have.
+
+Without Plan 2 you do the same inventory with a **historical message trace** in
+the Exchange admin center: 90 days back, then filter for messages where sender and
+recipient are in the same domain but the message events show no connector. Slower
+and more manual, but it is in every tenant with cloud mailboxes — and for the
+audience of this advisory that is the difference between being able to look and not.
 
 If you deliberately still have Direct Send enabled for printers or a line-of-business
 application, exclude those sources by IP and monitor the volume — the advisory
