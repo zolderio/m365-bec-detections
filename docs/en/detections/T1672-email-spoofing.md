@@ -100,6 +100,67 @@ EmailEvents
 | order by Timestamp desc
 ```
 
+## KQL — inventory before you enable the measure
+
+Measure 003 is a single boolean, but it can break legitimate mail flows:
+printers, scanners, an accounting package that mails invoices, an alarm system.
+So inventory who uses it today first. This query counts *sources* rather than
+messages, because the source list is what you make the decision on.
+
+<!-- query
+platform: both
+name: Direct Send inventory by source IP before enabling RejectDirectSend
+technique: T1672
+severity: Informational
+tactics: [ResourceDevelopment]
+interval: P1D
+lookback: P30D
+parameters: [ownDomains]
+deployable: false
+-->
+
+```kql
+// Inventory: which sources use Direct Send, how often, and since when.
+// Run this BEFORE you flip RejectDirectSend. Every row is a device or
+// application that will start getting a 550 5.7.68 after the change.
+let lookback = 30d;
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- change me
+EmailEvents
+| where Timestamp > ago(lookback)
+| where EmailDirection == "Inbound"
+| where tolower(SenderFromDomain) in~ (ownDomains)
+| where isempty(Connectors)
+| extend Source = coalesce(SenderIPv4, SenderIPv6)
+| summarize Messages      = count(),
+            Senders       = make_set(SenderFromAddress, 10),
+            Subjects      = make_set(Subject, 5),
+            Recipients    = dcount(RecipientEmailAddress),
+            FirstSeen     = min(Timestamp),
+            LastSeen      = max(Timestamp),
+            Delivered     = countif(DeliveryAction == "Delivered"),
+            Blocked       = countif(DeliveryAction != "Delivered")
+        by Source
+| extend DaysActive = datetime_diff("day", LastSeen, FirstSeen)
+| order by Messages desc
+```
+
+How to read the result:
+
+- **Few sources, high volume, active every day, one fixed sender address** — that
+  is the profile of a printer or line-of-business application. Put those on the
+  exception list, or better, move them to an authenticated path before you flip
+  the switch.
+- **Many separate IP addresses, low counts, varying senders** — that is not a
+  printer. That is abuse, and the measure is exactly what it is for.
+- **An empty result** is the best answer: nobody uses it, the switch can go.
+
+Without the Defender portal (no `EmailEvents`, so no advanced hunting) you do the
+same inventory with a **historical message trace** in the Exchange admin center:
+90 days back, then filter for messages where sender and recipient are in the same
+domain but the message events show no connector. Slower and more manual, but it
+needs no add-on — and for the audience of this advisory that is the difference
+between being able to look and not.
+
 If you deliberately still have Direct Send enabled for printers or a line-of-business
 application, exclude those sources by IP and monitor the volume — the advisory
 asks for that explicitly:

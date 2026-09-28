@@ -99,6 +99,66 @@ EmailEvents
 | order by Timestamp desc
 ```
 
+## KQL — inventarisatie vóór je de maatregel aanzet
+
+Maatregel 003 is één boolean, maar hij kan legitieme mailstromen breken:
+printers, scanners, een boekhoudpakket dat facturen mailt, een alarmsysteem.
+Inventariseer dus eerst wie er vandaag gebruik van maakt. Deze query telt niet
+de berichten maar de *bronnen*, want dat is de lijst waarop je een besluit neemt.
+
+<!-- query
+platform: both
+name: Direct Send inventory by source IP before enabling RejectDirectSend
+technique: T1672
+severity: Informational
+tactics: [ResourceDevelopment]
+interval: P1D
+lookback: P30D
+parameters: [ownDomains]
+deployable: false
+-->
+
+```kql
+// Inventarisatie: welke bronnen gebruiken Direct Send, hoe vaak, en sinds wanneer.
+// Draai dit VOORDAT je RejectDirectSend omzet. Elke regel is een apparaat of
+// applicatie die na de wijziging een 550 5.7.68 gaat krijgen.
+let lookback = 30d;
+let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- aanpassen
+EmailEvents
+| where Timestamp > ago(lookback)
+| where EmailDirection == "Inbound"
+| where tolower(SenderFromDomain) in~ (ownDomains)
+| where isempty(Connectors)
+| extend Bron = coalesce(SenderIPv4, SenderIPv6)
+| summarize Berichten          = count(),
+            Afzenders          = make_set(SenderFromAddress, 10),
+            Onderwerpen        = make_set(Subject, 5),
+            Ontvangers         = dcount(RecipientEmailAddress),
+            EersteKeer         = min(Timestamp),
+            LaatsteKeer        = max(Timestamp),
+            Bezorgd            = countif(DeliveryAction == "Delivered"),
+            Tegengehouden      = countif(DeliveryAction != "Delivered")
+        by Bron
+| extend DagenActief = datetime_diff("day", LaatsteKeer, EersteKeer)
+| order by Berichten desc
+```
+
+Hoe je de uitkomst leest:
+
+- **Weinig bronnen, hoog volume, elke dag actief, één vast afzenderadres** — dat
+  is het profiel van een printer of lijnapplicatie. Zet die op de uitzonderingslijst
+  of, beter, verhuis ze naar een geauthenticeerd pad voordat je de knop omzet.
+- **Veel losse IP-adressen, lage aantallen, wisselende afzenders** — dat is geen
+  printer. Dat is misbruik, en dan is de maatregel precies waarvoor hij bedoeld is.
+- **Een lege uitkomst** is het beste antwoord: niemand gebruikt het, de knop kan om.
+
+Zonder Defender-portaal (geen `EmailEvents`, dus geen advanced hunting) doe je
+dezelfde inventarisatie met een **historical message trace** in het Exchange
+admin center: 90 dagen terug, en dan filteren op berichten waarbij afzender en
+ontvanger in hetzelfde domein zitten maar er geen connector in het bericht-event
+staat. Trager en handmatiger, maar het vraagt geen add-on — en dat is voor de
+doelgroep van dit advies het verschil tussen wel en niet kunnen kijken.
+
 Heb je Direct Send bewust nog aanstaan voor printers of een lijnapplicatie,
 sluit die bronnen dan uit op IP en monitor het volume — het advies vraagt daar
 expliciet om:
