@@ -96,7 +96,7 @@ technique: T1204
 severity: Medium
 tactics: [Execution]
 interval: PT1H
-lookback: P1D
+lookback: P7D
 parameters: []
 deployable: false
 -->
@@ -152,7 +152,7 @@ deployable: true
 // The same detection in Sentinel. Difference with Defender XDR: the time
 // column is called TimeGenerated. The column names FileExtension,
 // NetworkMessageId, RecipientEmailAddress and DeliveryLocation are identical.
-let lookback = 7d;
+let lookback = 1d;
 let riskyExtensions = dynamic(["html","htm","shtml","xhtml","svg",
                                "js","jse","vbs","vbe","wsf","hta","chm","iso","img"]);
 EmailAttachmentInfo

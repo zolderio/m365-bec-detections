@@ -133,7 +133,7 @@ deployable: true
 // in modifiedProperties; exactly which property that is differs per activity,
 // so we serialise the whole thing and search it as text. That is cruder than
 // a parsed lookup, but it does not break when Microsoft changes the order.
-let lookback = 30d;
+let lookback = 1d;
 let riskScopes = dynamic([
     "Mail.Read","Mail.ReadWrite","Mail.ReadBasic","Mail.Send",
     "MailboxSettings.ReadWrite","full_access_as_app","EWS.AccessAsUser.All",

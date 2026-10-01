@@ -123,7 +123,7 @@ technique: T1059
 severity: Medium
 tactics: [Execution]
 interval: PT1H
-lookback: P1D
+lookback: P7D
 parameters: []
 deployable: false
 -->
@@ -168,7 +168,7 @@ deployable: true
 // Same detection, Sentinel variants of the column names: TimeGenerated instead
 // of Timestamp, and AdditionalFields is dynamic here, so dot notation instead
 // of extractjson.
-let lookback = 30d;
+let lookback = 1d;
 DeviceEvents
 | where TimeGenerated > ago(lookback)
 | where ActionType startswith "Asr"

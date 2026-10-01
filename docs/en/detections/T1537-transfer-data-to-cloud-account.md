@@ -73,7 +73,7 @@ deployable: true
 // Sharing operations in SharePoint and OneDrive where the recipient is outside
 // the organisation. The operation names are taken literally from Microsoft's
 // audit activities reference.
-let lookback = 7d;
+let lookback = 1d;
 let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- adjust
 let ShareOperations = dynamic([
     "AnonymousLinkCreated",       // link without authentication: anyone who has it
@@ -164,7 +164,7 @@ deployable: true
 -->
 ```kql
 // Unusually many downloaded files by a single account within an hour.
-let lookback = 7d;
+let lookback = 1d;
 let threshold = 100;                 // calibrate to your own organisation
 OfficeActivity
 | where TimeGenerated > ago(lookback)

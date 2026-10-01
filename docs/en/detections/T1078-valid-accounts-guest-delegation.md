@@ -69,7 +69,7 @@ deployable: true
 ```kql
 // 1. Guest accounts being invited and redeemed. The documented
 //    Entra audit activities sit under the UserManagement category.
-let lookback = 30d;
+let lookback = 1d;
 AuditLogs
 | where TimeGenerated > ago(lookback)
 | where OperationName in~ ("Invite external user",
@@ -157,7 +157,7 @@ deployable: true
 ```kql
 // 4. Delegation on the mailbox — same logic, different workload.
 //    An extended variant with parameter extraction is in T1114.002.
-let lookback = 7d;
+let lookback = 1d;
 OfficeActivity
 | where TimeGenerated > ago(lookback)
 | where Operation in~ ("Add-MailboxPermission", "Add-RecipientPermission", "UpdateFolderPermissions")

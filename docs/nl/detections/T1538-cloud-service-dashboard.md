@@ -162,7 +162,7 @@ deployable: true
 // Dit is waar T1538 in een moderne tenant daadwerkelijk plaatsvindt: niet in
 // het portaal, maar in een script. Vandaar dat de portaalbeperking uit
 // maatregel 014 hier niets tegen doet.
-let lookback = 7d;
+let lookback = 1d;
 let threshold = 200;                 // aantal directory-reads binnen het window
 MicrosoftGraphActivityLogs
 | where TimeGenerated > ago(lookback)
@@ -243,7 +243,7 @@ deployable: true
 // wegschrijft bij deze specifieke schakelaar is NIET publiek gedocumenteerd.
 // Daarom staan beide kandidaat-activiteiten in het filter -- verifieer in uw
 // eigen tenant welke van de twee verschijnt en versmal daarna.
-let lookback = 30d;
+let lookback = 1d;
 AuditLogs
 | where TimeGenerated > ago(lookback)
 | where (Category == "AuthorizationPolicy" and ActivityDisplayName == "Update authorization policy")

@@ -87,7 +87,7 @@ technique: T1557
 severity: Medium
 tactics: [CredentialAccess, InitialAccess]
 interval: PT1H
-lookback: P1D
+lookback: P37D
 parameters: []
 deployable: false
 -->

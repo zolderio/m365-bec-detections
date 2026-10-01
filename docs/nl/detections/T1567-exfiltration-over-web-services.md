@@ -143,7 +143,7 @@ deployable: true
 -->
 
 ```kql
-let lookback = 7d;
+let lookback = 1d;
 OfficeActivity
 | where TimeGenerated > ago(lookback)
 | where Operation in~ ("AnonymousLinkCreated", "SecureLinkCreated", "AddedToSecureLink",

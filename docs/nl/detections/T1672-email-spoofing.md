@@ -86,7 +86,7 @@ deployable: true
 // Direct Send: het bericht komt ongeauthenticeerd binnen op de MX-endpoint en
 // er is dus geen connector aan te wijzen. Legitieme interne mail is
 // Intra-org, niet Inbound.
-let lookback = 30d;
+let lookback = 1d;
 let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- aanpassen
 EmailEvents
 | where Timestamp > ago(lookback)

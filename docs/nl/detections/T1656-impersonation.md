@@ -245,7 +245,7 @@ deployable: true
 // Zorg dat de Defender-alerts in Sentinel op een niveau binnenkomen waar iemand
 // kijkt. De alert policies rond overrides zijn Informational; deze rule tilt ze
 // eruit in plaats van ze te laten wegzakken.
-let lookback = 7d;
+let lookback = 1d;
 SecurityAlert
 | where TimeGenerated > ago(lookback)
 | where ProviderName has_any ("MDATP", "Office 365 Advanced Threat Protection",

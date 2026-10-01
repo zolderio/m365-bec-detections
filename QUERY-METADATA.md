@@ -34,7 +34,7 @@ wordt de naam van de regel in de Azure-portal, en die is niet vertaald.
 | `severity` | `Informational` \| `Low` \| `Medium` \| `High` | Wat de regel zou moeten hebben — niet wat Microsoft eraan geeft. Dat is het hele punt van deze repo. |
 | `tactics` | lijst | Sentinel-tactieknamen (`Collection`, `Persistence`, `CredentialAccess`, `DefenseEvasion`, `InitialAccess`, `PrivilegeEscalation`, `Discovery`, `LateralMovement`, `Exfiltration`, `Impact`, `Execution`, `Reconnaissance`, `ResourceDevelopment`). |
 | `interval` | ISO 8601 duration | Hoe vaak de regel draait, bijvoorbeeld `PT1H` of `P1D`. Kies iets dat past bij de latency van de databron; auditlogs zijn niet realtime. |
-| `lookback` | ISO 8601 duration | Het venster waarover de query kijkt. Moet minstens gelijk zijn aan `interval`, meestal ruimer. |
+| `lookback` | ISO 8601 duration | Het venster waarover de query kijkt. Moet minstens gelijk zijn aan `interval`, meestal ruimer. Bij een deployable query is dit leidend en staat de `let lookback` in de query op dezelfde waarde; bij een hunting-query beschrijft het wat de query doet. Gebruikt de query een baseline, dan is dit de totale periode inclusief baseline. |
 | `parameters` | lijst of `[]` | Namen van `let`-variabelen die de gebruiker moet invullen vóór gebruik, zoals `ownDomains`. Worden parameters in een ARM-template. |
 | `deployable` | `true` \| `false` | `false` voor verkennende of diagnostische queries die geen alertregel horen te worden: inventarisaties, "vuurt het alert eigenlijk?"-checks, losse filterfragmenten die niet zelfstandig draaien, en alles op `defender-xdr`. |
 
