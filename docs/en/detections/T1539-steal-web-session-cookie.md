@@ -158,7 +158,7 @@ deployable: true
 // One token being redeemed at resource providers from multiple IP addresses
 // or from multiple countries. In a normal session that happens from one
 // place; with a stolen cookie or refresh token it does not.
-let lookback = 7d;
+let lookback = 1d;
 union SigninLogs, AADNonInteractiveUserSignInLogs
 | where TimeGenerated > ago(lookback)
 | where ResultType == "0"

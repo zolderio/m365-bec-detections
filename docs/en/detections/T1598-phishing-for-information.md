@@ -31,7 +31,7 @@ request. Three policies touch on the technique indirectly.
 | **Alert policy** | `Email reported by user as malware or phish` |
 | **Default severity** | **Low** |
 | **Licensing** | E3/G3, Microsoft 365 Business Premium, Defender for Office 365 Plan 1 add-on, E5/G5, or Defender for Office 365 Plan 2 add-on |
-| **Limitation** | Only fires once a user presses **Report** themselves. That is exactly the scenario in which the recon mail *was* spotted; the messages that are missed yield nothing. Severity **Low** means that in practice nobody looks at it, and raising it is not demonstrably possible for a System policy — see the README. |
+| **Limitation** | Only fires once a user presses **Report** themselves. That is exactly the scenario in which the recon mail *was* spotted; the messages that are missed yield nothing. Severity **Low** means that in practice nobody looks at it, and raising it is not demonstrably possible for a System policy — see [severity of a built-in policy](../index.md#can-you-raise-the-severity-of-a-built-in-policy). |
 | **Source** | https://learn.microsoft.com/en-us/defender-xdr/alert-policies |
 
 | | |

@@ -160,7 +160,7 @@ deployable: true
 // This is where T1538 actually takes place in a modern tenant: not in the
 // portal, but in a script. Which is why the portal restriction from measure
 // 014 does nothing against it.
-let lookback = 7d;
+let lookback = 1d;
 let threshold = 200;                 // number of directory reads within the window
 MicrosoftGraphActivityLogs
 | where TimeGenerated > ago(lookback)
@@ -241,7 +241,7 @@ deployable: true
 // away for this specific switch is NOT publicly documented.
 // That is why both candidate activities are in the filter -- verify in your
 // own tenant which of the two appears and then narrow it down.
-let lookback = 30d;
+let lookback = 1d;
 AuditLogs
 | where TimeGenerated > ago(lookback)
 | where (Category == "AuthorizationPolicy" and ActivityDisplayName == "Update authorization policy")

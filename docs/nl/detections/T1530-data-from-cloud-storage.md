@@ -164,7 +164,7 @@ deployable: true
 ```kql
 // Gebruikers die binnen 30 minuten zowel zochten als bestanden openden,
 // vanaf hetzelfde IP.
-let lookback = 7d;
+let lookback = 1d;
 let searches = OfficeActivity
     | where TimeGenerated > ago(lookback)
     | where Operation in~ ("SearchQueryInitiatedSharePoint", "SearchQueryPerformed")

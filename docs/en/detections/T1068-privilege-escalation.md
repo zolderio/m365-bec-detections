@@ -135,7 +135,7 @@ deployable: true
 // All role assignments, permanent and eligible. The PIM variants are included
 // deliberately: if the organisation uses PIM, the distinction between "via PIM" and
 // "outside of it" is exactly what you want to see.
-let lookback = 30d;
+let lookback = 1d;
 let sensitiveRoles = dynamic([
     "Global Administrator","Privileged Role Administrator","Privileged Authentication Administrator",
     "Exchange Administrator","Security Administrator","Application Administrator",
@@ -191,7 +191,7 @@ deployable: true
 // Privileged Identity Management". Usable in tenants that use PIM.
 // According to the table documentation, LoggedByService contains values such as
 // "Core Directory" and "Privileged Identity Management".
-let lookback = 30d;
+let lookback = 1d;
 AuditLogs
 | where TimeGenerated > ago(lookback)
 | where Category == "RoleManagement"
@@ -228,7 +228,7 @@ deployable: true
 // The Exchange side, which is where the Elevation of Exchange admin privilege alert sits.
 // This is the query you use to check whether that alert is complete —
 // and to build your own, higher-rated rule on top of it.
-let lookback = 30d;
+let lookback = 1d;
 let criticalRoleGroups = dynamic([
     "Organization Management","Recipient Management","Compliance Management",
     "Discovery Management","Records Management","Security Administrator",
@@ -282,7 +282,7 @@ technique: T1068
 severity: Medium
 tactics: [PrivilegeEscalation, Persistence]
 interval: PT1H
-lookback: P1D
+lookback: P30D
 parameters: []
 deployable: false
 -->

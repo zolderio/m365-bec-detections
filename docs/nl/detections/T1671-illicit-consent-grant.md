@@ -134,7 +134,7 @@ deployable: true
 // in modifiedProperties; welke property dat precies is verschilt per activiteit,
 // dus we serialiseren het geheel en zoeken er tekstueel in. Dat is grover dan
 // een geparste lookup, maar het breekt niet als Microsoft de volgorde wijzigt.
-let lookback = 30d;
+let lookback = 1d;
 let riskScopes = dynamic([
     "Mail.Read","Mail.ReadWrite","Mail.ReadBasic","Mail.Send",
     "MailboxSettings.ReadWrite","full_access_as_app","EWS.AccessAsUser.All",

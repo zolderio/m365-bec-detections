@@ -87,7 +87,7 @@ deployable: true
 // the message arrives unauthenticated at the MX endpoint and there is
 // therefore no connector to point to. Legitimate internal mail is
 // Intra-org, not Inbound.
-let lookback = 30d;
+let lookback = 1d;
 let ownDomains = dynamic(["yourdomain.example", "yourseconddomain.example"]);   // <-- adjust
 EmailEvents
 | where Timestamp > ago(lookback)

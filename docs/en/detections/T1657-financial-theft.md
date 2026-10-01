@@ -112,7 +112,7 @@ deployable: true
 // Via the API, Microsoft adds the string "(attack disruption)" to the title
 // of incidents that have been interrupted automatically. Do not filter on that
 // alone: the individual alerts within such an incident do not carry that string.
-let lookback = 30d;
+let lookback = 1d;
 SecurityAlert
 | where TimeGenerated > ago(lookback)
 | where AlertName has_any ("attack disruption", "business email", "BEC",

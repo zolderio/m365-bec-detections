@@ -114,7 +114,7 @@ deployable: true
 // Internal mail labelled as phishing or malware by the filter stack.
 // EmailDirection "Intra-org" is the crux: this is mail from an own account to
 // an own colleague, and therefore by definition a lateral movement signal.
-let lookback = 7d;
+let lookback = 1d;
 EmailEvents
 | where Timestamp > ago(lookback)
 | where EmailDirection == "Intra-org"
@@ -151,7 +151,7 @@ technique: T1534
 severity: Medium
 tactics: [LateralMovement]
 interval: PT1H
-lookback: P1D
+lookback: P7D
 parameters: []
 deployable: false
 -->
@@ -191,7 +191,7 @@ technique: T1534
 severity: Medium
 tactics: [LateralMovement]
 interval: PT1H
-lookback: P1D
+lookback: P7D
 parameters: []
 deployable: false
 -->

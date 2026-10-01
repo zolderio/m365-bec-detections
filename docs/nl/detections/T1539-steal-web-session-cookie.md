@@ -159,7 +159,7 @@ deployable: true
 // Eén token dat bij resource providers wordt ingewisseld vanaf meerdere
 // IP-adressen of vanuit meerdere landen. Bij een normale sessie gebeurt dat
 // vanaf één plek; bij een gestolen cookie of refresh token niet.
-let lookback = 7d;
+let lookback = 1d;
 union SigninLogs, AADNonInteractiveUserSignInLogs
 | where TimeGenerated > ago(lookback)
 | where ResultType == "0"
