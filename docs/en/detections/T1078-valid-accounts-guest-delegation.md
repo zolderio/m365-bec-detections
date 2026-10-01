@@ -246,8 +246,11 @@ parameters: [trustedPartners]
 deployable: false
 -->
 ```kql
+// at the top of the query:
+let trustedPartners = dynamic(["trustedpartner.example", "trustedcustomer.example"]);   // <-- adjust
+// as the last filter line:
 | extend GuestDomain = tolower(tostring(split(replace_string(Guest, "_", "@"), "@")[-1]))
-| where GuestDomain !in~ ("trustedpartner.example", "trustedcustomer.example")   // <-- adjust
+| where not(GuestDomain in~ (trustedPartners))
 ```
 
 Note that guest UPNs in Entra take the form

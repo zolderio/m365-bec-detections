@@ -246,8 +246,11 @@ parameters: [trustedPartners]
 deployable: false
 -->
 ```kql
+// bovenaan de query:
+let trustedPartners = dynamic(["trustedpartner.example", "trustedcustomer.example"]);   // <-- aanpassen
+// als laatste filterregel:
 | extend GuestDomain = tolower(tostring(split(replace_string(Guest, "_", "@"), "@")[-1]))
-| where GuestDomain !in~ ("trustedpartner.example", "trustedcustomer.example")   // <-- aanpassen
+| where not(GuestDomain in~ (trustedPartners))
 ```
 
 Let op dat gast-UPN's in Entra de vorm `naam_extern.com#EXT#@yourdomain.onmicrosoft.com`
