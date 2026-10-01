@@ -46,7 +46,7 @@ Wat ervoor in de plaats kwam:
 Drie beperkingen die samen bepalen waarom dit geen detectie is:
 
 1. **Alle drie Informational.** Zonder ophoging verdwijnen ze in een dashboard.
-   Ophogen van de severity is bij een System-policy niet aantoonbaar mogelijk; Microsofts documentatie spreekt zichzelf op dat punt tegen — zie de README.
+   Ophogen van de severity is bij een System-policy niet aantoonbaar mogelijk; Microsofts documentatie spreekt zichzelf op dat punt tegen — zie [severity van een ingebouwde policy](../index.md#kun-je-de-severity-van-een-ingebouwde-policy-ophogen).
 2. **Ze vuren op de override, niet op de impersonatie.** Een impersonatiemail
    die gewoon door de filters komt omdat de impersonatie-instellingen niet
    geconfigureerd zijn, levert geen van deze alerts op.

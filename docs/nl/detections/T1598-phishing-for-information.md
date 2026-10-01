@@ -31,7 +31,7 @@ informatieaanvraag. Drie policies raken de techniek zijdelings.
 | **Alert policy** | `Email reported by user as malware or phish` |
 | **Standaard severity** | **Low** |
 | **Licentie** | E3/G3, Microsoft 365 Business Premium, Defender for Office 365 Plan 1 add-on, E5/G5, of Defender for Office 365 Plan 2 add-on |
-| **Beperking** | Vuurt pas als een gebruiker zelf op **Report** drukt. Dat is precies het scenario waarin de recon-mail wél is opgemerkt; de gemiste mails leveren niets op. Severity **Low** betekent dat er in de praktijk niemand naar kijkt, en ophogen is bij een System-policy niet aantoonbaar mogelijk — zie de README. |
+| **Beperking** | Vuurt pas als een gebruiker zelf op **Report** drukt. Dat is precies het scenario waarin de recon-mail wél is opgemerkt; de gemiste mails leveren niets op. Severity **Low** betekent dat er in de praktijk niemand naar kijkt, en ophogen is bij een System-policy niet aantoonbaar mogelijk — zie [severity van een ingebouwde policy](../index.md#kun-je-de-severity-van-een-ingebouwde-policy-ophogen). |
 | **Bron** | https://learn.microsoft.com/en-us/defender-xdr/alert-policies |
 
 | | |

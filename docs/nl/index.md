@@ -1,6 +1,6 @@
 # Detectie bij het NCSC/Cyclotron BEC-advies
 
-Werkende detectie-logica bij de 19 maatregelen uit **"Business E-mail Compromise
+Detectie-logica bij de 19 maatregelen uit **"Business E-mail Compromise
 (BEC) — Technisch advies"** (NCSC, Cyclotron, april 2026). Per MITRE
 ATT&CK-techniek uit dat advies staat hier:
 

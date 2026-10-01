@@ -1,6 +1,6 @@
 # Detection for the NCSC/Cyclotron BEC advisory
 
-Working detection logic for the 19 measures from **"Business E-mail Compromise
+Detection logic for the 19 measures from **"Business E-mail Compromise
 (BEC) — Technical advisory"** (NCSC, Cyclotron, April 2026). For every MITRE
 ATT&CK technique in that advisory, this repo states:
 

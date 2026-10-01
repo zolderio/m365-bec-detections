@@ -47,7 +47,7 @@ Three limitations that together explain why this is not a detection:
 
 1. **All three Informational.** Without being raised they disappear into a
    dashboard. Raising the severity is not demonstrably possible for a System
-   policy; Microsoft's documentation contradicts itself on that point — see the README.
+   policy; Microsoft's documentation contradicts itself on that point — see [severity of a built-in policy](../index.md#can-you-raise-the-severity-of-a-built-in-policy).
 2. **They fire on the override, not on the impersonation.** An impersonation
    message that simply passes the filters because the impersonation settings
    are not configured produces none of these alerts.
