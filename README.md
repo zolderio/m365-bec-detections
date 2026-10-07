@@ -1,35 +1,37 @@
-# BEC-detecties voor Microsoft 365
+# BEC detections for Microsoft 365
 
-Detectie-logica bij de 19 maatregelen uit **"Business E-mail Compromise (BEC) —
-Technisch advies"** (NCSC, Cyclotron, april 2026). Per MITRE ATT&CK-techniek uit
-dat advies: levert Microsoft er een standaard alert voor, en zo niet, welke KQL
-en welke databron heb je nodig.
+**English** · [Nederlands](README.nl.md)
 
-**Documentatiesite:** `docs/nl/` (Nederlands) en `docs/en/` (English).
-Begin bij [het overzicht](docs/nl/overzicht.md) — alle 27 technieken in één
-tabel, met per techniek de aanbevolen detectie.
+Detection logic for the 19 measures from **"Business E-mail Compromise (BEC) —
+Technical advisory"** (NCSC, Cyclotron, April 2026). For every MITRE ATT&CK
+technique in that advisory: does Microsoft provide a default alert for it, and
+if not, which KQL and which data source do you need.
 
-## Kernbevinding
+**Documentation site:** `docs/en/` (English) and `docs/nl/` (Nederlands).
+Start with [the overview](docs/en/overzicht.md) — all 27 techniques in one
+table, with the recommended detection per technique.
 
-Voor **geen enkele** van de 27 technieken is een Defender-alert alleen
-toereikend. Bij negen is er een bruikbaar alert dat je moet aanzetten, maar laat
-het een gat dat er in de praktijk toe doet: het dekt niet alle uitvoeringswijzen,
-of het vereist een E5- of add-on-licentie die het mkb — de doelgroep van dit
-advies — niet heeft. Bij de overige achttien is er niets om op te leunen.
+## Key finding
 
-## Status van de queries
+For **none** of the 27 techniques is a Defender alert sufficient on its own.
+For nine there is a usable alert you should enable, but it leaves a gap that
+matters in practice: it does not cover every way the technique is executed, or
+it requires an E5 or add-on licence that SMEs — the audience of this advisory —
+do not have. For the other eighteen there is nothing to rely on.
 
-De queries zijn **niet uitgevoerd tegen een productie-tenant**. Ze zijn gebouwd
-op tabel- en kolomnamen uit de Microsoft-documentatie en op gepubliceerde
-hunting-queries. Zie [de teststatus](docs/nl/teststatus.md) per techniek. Neem
-niets over in productie zonder het zelf te draaien.
+## Status of the queries
 
-## Bijdragen
+The queries have **not been run against a production tenant**. They are built
+on table and column names from the Microsoft documentation and on published
+hunting queries. See [the test status](docs/en/teststatus.md) per technique.
+Do not adopt anything in production without running it yourself.
 
-Welkom, en het meest bruikbaar is een teststatus van iemand die een query écht
-heeft gedraaid. Zie [CONTRIBUTING](docs/nl/bijdragen.md).
+## Contributing
 
-## De site lokaal bouwen
+Welcome — and the most useful contribution is a test status from someone who
+has actually run a query. See [CONTRIBUTING](docs/en/bijdragen.md).
+
+## Building the site locally
 
 ```bash
 python3 -m venv .venv-docs
@@ -37,7 +39,7 @@ python3 -m venv .venv-docs
 .venv-docs/bin/mkdocs serve
 ```
 
-## Licentie
+## Licence
 
-[MIT](LICENSE). Vrij te gebruiken, aan te passen en commercieel in te zetten,
-mits de copyrightvermelding meegaat.
+[MIT](LICENSE). Free to use, modify and deploy commercially, provided the
+copyright notice is retained.
